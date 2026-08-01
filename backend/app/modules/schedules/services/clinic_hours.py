@@ -18,7 +18,7 @@ from ..models import ClinicOverride, ClinicWeeklySchedule, ScheduleShift
 class ClinicHoursService:
     """CRUD for a clinic's weekly schedule + date-range overrides."""
 
-    DEFAULT_TIMEZONE = "Europe/Madrid"
+    DEFAULT_TIMEZONE = "America/La_Paz"
 
     @staticmethod
     async def get_clinic_timezone(db: AsyncSession, clinic_id: UUID) -> str:

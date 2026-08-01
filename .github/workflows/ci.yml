@@ -252,14 +252,21 @@ jobs:
         run: npm run test
 
   e2e:
-    # Browser E2E smoke. Boots db + backend via docker compose, runs
-    # Nuxt on the host (simpler than juggling the container's bind
-    # mount + host npm), drives it with Playwright on the host. Slow
-    # (~6 min). Required on main + PRs.
+    # Browser E2E smoke. Boots backend via docker compose against the
+    # Supabase DATABASE_URL secret (no local db container — see
+    # docker-compose.yml), runs Nuxt on the host (simpler than juggling
+    # the container's bind mount + host npm), drives it with Playwright
+    # on the host. Slow (~6 min). Required on main + PRs.
+    #
+    # NOTE: this writes real rows to the shared Supabase project (fixed
+    # demo clinic UUID, skipped on re-seed — see seed_demo.py). Concurrent
+    # runs (e.g. two PRs at once) share that state; there is no per-run
+    # isolation. If that becomes a problem, switch to an ephemeral
+    # Postgres service like the backend-test job uses instead.
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      POSTGRES_PASSWORD: testpass
+      DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
       SECRET_KEY: ci-secret-key-for-e2e
 
     steps:
@@ -268,13 +275,13 @@ jobs:
       - name: Write .env
         run: |
           cat > .env <<EOF
-          POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+          DATABASE_URL=${DATABASE_URL}
           SECRET_KEY=${SECRET_KEY}
           ENVIRONMENT=development
           EOF
 
-      - name: Boot db + backend
-        run: docker compose up -d db backend
+      - name: Boot backend
+        run: docker compose up -d backend
 
       - name: Wait for backend health
         run: |

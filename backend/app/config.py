@@ -14,11 +14,11 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     ALGORITHM: str = "HS256"
-    # Independent secret used to sign the public-budget verification
-    # cookies (ADR 0006). Falls back to ``SECRET_KEY`` for local/dev
-    # convenience, but production deploys must set it explicitly so a
-    # leak of one key does not compromise the other.
-    BUDGET_PUBLIC_SECRET_KEY: str = ""
+    # Gates the operator endpoints (POST /auth/operator/clinics and
+    # friends) used to manually provision/deprovision clinics before
+    # self-serve signup exists. Empty disables those routes entirely —
+    # they must be turned on deliberately per environment.
+    OPERATOR_SECRET_KEY: str = ""
 
     # Environment
     ENVIRONMENT: str = "development"
@@ -32,12 +32,12 @@ class Settings(BaseSettings):
     TESTING: bool = False
 
     # Module system
-    DENTALPIN_DEV_MODULE_SCAN: bool = True  # Fallback filesystem scan for dev
+    DENTIA_DEV_MODULE_SCAN: bool = True  # Fallback filesystem scan for dev
     # Host-mounted path where `frontend/modules.json` lives. The backend
     # writes this file whenever a module with a Nuxt layer is
     # installed/uninstalled so the Nuxt host picks up `extends` on next
     # build. docker-compose mounts `./frontend` → `/host_frontend`.
-    DENTALPIN_FRONTEND_ROOT: str = "/host_frontend"
+    DENTIA_FRONTEND_ROOT: str = "/host_frontend"
     # Absolute path INSIDE the frontend container where
     # `backend/app/modules` is mounted (see docker-compose). The writer
     # uses this prefix when rendering layer paths in `modules.json` so
@@ -45,11 +45,11 @@ class Settings(BaseSettings):
     # production (single container / bundled deploy) this can be set to
     # the same path the backend sees for modules, in which case no
     # translation happens.
-    DENTALPIN_MODULE_LAYERS_MOUNT: str = "/module_layers"
+    DENTIA_MODULE_LAYERS_MOUNT: str = "/module_layers"
     # The backend-container path at which module packages live. Stripped
     # from absolute layer paths before the MOUNT prefix is applied. Rare
     # to override; exists for non-standard container layouts.
-    DENTALPIN_MODULE_PKG_ROOT: str = "/app/app/modules"
+    DENTIA_MODULE_PKG_ROOT: str = "/app/app/modules"
 
     # Storage configuration
     STORAGE_BACKEND: str = "local"
@@ -74,8 +74,8 @@ class Settings(BaseSettings):
     EMAIL_SMTP_PASSWORD: str = ""
 
     # Default sender
-    EMAIL_FROM_ADDRESS: str = "noreply@dentalpin.com"
-    EMAIL_FROM_NAME: str = "DentalPin"
+    EMAIL_FROM_ADDRESS: str = "noreply@dentia.com"
+    EMAIL_FROM_NAME: str = "SmileDesign"
 
     # Copilot / agentic layer (app/core/llm/). OpenAI is the only live
     # provider in v1; per-clinic `copilot_settings` overrides provider +

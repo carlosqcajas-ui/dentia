@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+- **BREAKING (feat/simplify):** removed the patient-facing public
+  budget link entirely (`docs/adr/0019`, supersedes `0006`). Dropped
+  `public_router.py`, the `budgets` public-link columns and
+  `budget_access_logs` table (migration `bud_0006`), the
+  `send_budget_reminders`/`purge_budget_access_logs` crons, the
+  `budget.viewed`/`budget.reminder_sent` events, and the
+  `BUDGET_PUBLIC_SECRET_KEY` setting. Staff-side `/accept`, `/reject`
+  and `/accept-in-clinic` are unaffected — budgets can still only be
+  accepted/rejected by clinic staff, never by the patient directly.
+
+- fix(regionalize): replace hardcoded `€` with `Bs` in the
+  `budget_sent`/`budget_accepted` email templates (es/fr locales) and
+  fix the PDF money-locale fallback from `es_ES` to `es_BO` in
+  `pdf.py`.
+
+- feat(budget): add `is_manual_total` — an opt-in mode for budgets with
+  no line-item breakdown, where staff types the total by hand instead
+  of it being derived from items. Editable via `PUT /budgets/{id}/total`
+  in any status, including after acceptance (intentionally breaks the
+  signed PDF's tamper-evidence guarantee for these budgets only — see
+  ADR 0018). Itemized budgets are unaffected; `billing`, `reports`,
+  `notifications`, `migration_import` require no changes.
+
 - refactor(scheduler): declare the budget cron jobs (`expire_budgets`,
   `send_budget_reminders`, `purge_budget_access_logs`) via
   `get_scheduled_jobs()` instead of being imported by name in

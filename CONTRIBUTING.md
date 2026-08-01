@@ -1,6 +1,6 @@
-# Contributing to DentalPin
+# Contributing to Dentia
 
-Thank you for your interest in contributing to DentalPin! This document will help you understand how to contribute effectively.
+Thank you for your interest in contributing to Dentia! This document will help you understand how to contribute effectively.
 
 ---
 
@@ -21,7 +21,7 @@ Thank you for your interest in contributing to DentalPin! This document will hel
 
 ### Business Model & License
 
-DentalPin uses the **BSL 1.1** license (Business Source License):
+Dentia uses the **BSL 1.1** license (Business Source License):
 
 - **Free to use** for clinics (self-hosted or cloud)
 - **Contributions welcome** and encouraged
@@ -32,7 +32,7 @@ By contributing, you agree that your contributions will be licensed under BSL 1.
 
 ### Architecture Overview
 
-DentalPin follows a layered architecture:
+Dentia follows a layered architecture:
 
 | Layer | Description |
 |-------|-------------|
@@ -60,6 +60,7 @@ DentalPin follows a layered architecture:
 ### Prerequisites
 
 - Docker and Docker Compose
+- A Postgres 15 connection string for `DATABASE_URL` (a free [Supabase](https://supabase.com) project works well) — `docker-compose` does not bundle a local Postgres container
 - Git
 - Node.js 18+ (for frontend development outside Docker)
 - Python 3.11+ (for backend development outside Docker)
@@ -70,18 +71,21 @@ DentalPin follows a layered architecture:
 # 1. Fork the repository on GitHub
 
 # 2. Clone your fork
-git clone https://github.com/YOUR_USERNAME/dentalpin.git
-cd dentalpin
+git clone https://github.com/YOUR_USERNAME/dentia.git
+cd dentia
 
-# 3. Start the development environment
+# 3. Copy .env.example to .env and set DATABASE_URL
+cp .env.example .env
+
+# 4. Start the development environment
 docker-compose up
 
-# 4. Access the application
+# 5. Access the application
 # Frontend: http://localhost:3000
 # Backend API: http://localhost:8000/api/v1
 # API Docs: http://localhost:8000/docs
 
-# 5. Login with demo credentials
+# 6. Login with demo credentials
 # Email: admin@demo.clinic
 # Password: demo1234
 ```
@@ -306,7 +310,7 @@ const { can } = usePermissions()
 
 ## Creating Modules
 
-DentalPin has a plugin architecture. See the full guide: [docs/technical/creating-modules.md](docs/technical/creating-modules.md)
+Dentia has a plugin architecture. See the full guide: [docs/technical/creating-modules.md](docs/technical/creating-modules.md)
 
 ### Quick Overview
 
@@ -491,4 +495,4 @@ Please read and follow our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ## Thank You!
 
-Every contribution matters — from fixing typos to adding major features. We appreciate your time and effort in making DentalPin better for the dental community.
+Every contribution matters — from fixing typos to adding major features. We appreciate your time and effort in making Dentia better for the dental community.

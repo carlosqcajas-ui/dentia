@@ -1,4 +1,4 @@
-# DentalPin
+# Dentia
 
 [![en](https://img.shields.io/badge/lang-en-red.svg)](./README.md)
 [![es](https://img.shields.io/badge/lang-es-yellow.svg)](./README.es.md)
@@ -6,13 +6,13 @@
 
 Open source dental clinic management software. Built with modular architecture for extensibility.
 
-## Why DentalPin?
+## Why Dentia?
 
 Dental clinics around the world share the same fundamental needs: managing patients, scheduling appointments, tracking treatments, and running their practice efficiently. Yet the software landscape is fragmented into dozens of localized, closed-source solutions that lock clinics into expensive contracts and outdated technology.
 
 **We believe it's time for a change.**
 
-DentalPin is built on a simple premise: **one open platform for dental clinics everywhere**. Not another regional solution, but a global foundation that any clinic can adopt, any developer can extend, and any community can localize.
+Dentia is built on a simple premise: **one open platform for dental clinics everywhere**. Not another regional solution, but a global foundation that any clinic can adopt, any developer can extend, and any community can localize.
 
 ### Why now?
 
@@ -30,11 +30,11 @@ AI has fundamentally changed what small teams can build. Features that once requ
 
 We're not just building software—we're building the foundation for an ecosystem. A platform where developers contribute modules, clinics share improvements, and the entire dental community benefits from collective innovation.
 
-Clinics deserve better than closed, expensive software from the last decade. DentalPin is the open alternative.
+Clinics deserve better than closed, expensive software from the last decade. Dentia is the open alternative.
 
 ## ✨ AI Copilot
 
-DentalPin ships with a built-in **agentic AI assistant** that turns the whole clinic into something you can simply talk to. Ask it to find a patient, free up a slot, chase an unanswered budget, or brief you on the day ahead — in plain Spanish or English — and it acts on your real data.
+Dentia ships with a built-in **agentic AI assistant** that turns the whole clinic into something you can simply talk to. Ask it to find a patient, free up a slot, chase an unanswered budget, or brief you on the day ahead — in plain Spanish or English — and it acts on your real data.
 
 ![AI Copilot](docs/screenshots/ia.png)
 
@@ -52,11 +52,11 @@ Vendor-agnostic under the hood (an LLM-provider abstraction), with provider, mod
 
 ## Website
 
-Visit [**dentalpin.com**](https://www.dentalpin.com) for product info, features, and commercial details.
+Visit [**dentia.com**](https://www.dentia.com) for product info, features, and commercial details.
 
 ## Community
 
-Join our [**Telegram channel**](https://t.me/dentalpin) for support, installation help, and questions.
+Join our [**Telegram channel**](https://t.me/dentia) for support, installation help, and questions.
 
 ## Screenshots
 
@@ -82,6 +82,11 @@ Join our [**Telegram channel**](https://t.me/dentalpin) for support, installatio
 ![Settings](docs/screenshots/settings.png)
 
 ## Quick Start
+
+Copy `.env.example` to `.env` and set `DATABASE_URL` to a reachable
+Postgres 15 instance (a free [Supabase](https://supabase.com) project
+works well) — `docker-compose` no longer bundles a local Postgres
+container.
 
 ```bash
 # Start services
@@ -162,6 +167,7 @@ See [docs/user-manual/demo.md](docs/user-manual/demo.md) for full details on dem
 ### Prerequisites
 
 - Docker and Docker Compose
+- A Postgres 15 connection string (e.g. a Supabase project) for `DATABASE_URL`
 - Python 3.11+ (for local backend development)
 - Node.js 18+ (for local frontend development)
 
@@ -238,7 +244,7 @@ Full runbook + fixture reference: [docs/technical/e2e-testing.md](docs/technical
 
 ## Architecture
 
-DentalPin uses a modular plugin architecture. Each feature is a self-contained module that:
+Dentia uses a modular plugin architecture. Each feature is a self-contained module that:
 - Declares its SQLAlchemy models
 - Provides a FastAPI router
 - Can subscribe to events from other modules
@@ -249,7 +255,7 @@ See [docs/architecture.md](docs/architecture.md) for details.
 
 Business Source License 1.1 (BSL 1.1)
 
-**Use Limitation:** You may not offer DentalPin as a commercial SaaS for dental clinic management.
+**Use Limitation:** You may not offer Dentia as a commercial SaaS for dental clinic management.
 
 **Change Date:** 4 years from release
 

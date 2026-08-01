@@ -3,7 +3,7 @@
  * PlanItemSessionRow — one row of the session list rendered inside an item.
  *
  * Sessions split a plan item into named billable steps (e.g. crown:
- * "Toma de medidas" 200€ + "Colocación" 600€). Completion is per-row;
+ * "Toma de medidas" 200 Bs + "Colocación" 600 Bs). Completion is per-row;
  * completing the last pending session finalizes the parent item.
  */
 import type { PlanItemSession } from '~~/app/types'

@@ -4,26 +4,19 @@ Dental treatment quotes, versioning, signatures, PDF.
 
 ## Public API
 
-Routes mounted at `/api/v1/budget/`. Authenticated subset:
+Routes mounted at `/api/v1/budget/`. Staff-authenticated only — there
+is no patient-facing/unauthenticated subset (see ADR 0019, which
+removed the public link this module used to expose):
 
 - CRUD + version + signature workflow (legacy).
-- `POST /budgets/{id}/{renegotiate,accept-in-clinic,resend,
-  send-reminder,set-public-code,unlock-public}` (workflow rework).
+- `POST /budgets/{id}/{accept,reject,renegotiate,accept-in-clinic,resend}`
+  — acceptance/rejection is always staff-recorded, never patient
+  self-service.
 - `GET  /budgets/{id}/pdf` — unsigned PDF.
 - `GET  /budgets/{id}/pdf/signed` — signed PDF (404 if not signed).
 - `GET  /budgets/{id}/signature` — signature metadata (no raw PNG).
-
-Public subset (no staff auth, 2-factor verification — ADR 0006) under
-`/api/v1/public/budgets/{token}/`:
-
-- `GET    /meta`
-- `POST   /verify`           (rate-limited; sets HttpOnly cookie)
-- `GET    /`                 (cookie-protected; idempotent viewed_at)
-- `POST   /accept`           (cookie-protected)
-- `POST   /reject`           (cookie-protected)
-- `GET    /pdf/signed`       (cookie-protected; 404 until accepted;
-                              10/min per token; audit via
-                              `BudgetAccessLog`)
+- `PUT  /budgets/{id}/total` — set the total on an `is_manual_total`
+  budget by hand. No status guard (unlike `PUT /budgets/{id}`).
 
 ## Dependencies
 
@@ -57,8 +50,6 @@ only — never combined with payments data.
   `plan_id`).
 - `budget.expired` (snapshot payload with `days_overdue`, `plan_id`).
 - `budget.renegotiated` (snapshot payload with `plan_id`).
-- `budget.viewed` (idempotent first-open, snapshot payload).
-- `budget.reminder_sent` (snapshot payload with `milestone_days`).
 
 ## Events consumed
 
@@ -95,21 +86,33 @@ contract.
   importing the `TreatmentPlan` model, so event payloads can carry
   `plan_id` without violating ADR 0003.
 - **Budget versioning** keeps every prior version — never overwrite.
-- **Public-link sessions are per-token** (cookie path scoped to
-  `/api/v1/public/budgets/{token}`) so a stolen cookie from one
-  budget cannot unlock another.
-- **`BUDGET_PUBLIC_SECRET_KEY`** signs the public session cookies and
-  is independent from the global `SECRET_KEY`. Falls back in dev only.
+- **No patient self-service.** There is deliberately no unauthenticated
+  route that lets a patient accept/reject/view a budget — see ADR
+  0019. Don't reintroduce one without a new ADR.
 - **Signed PDF tamper-evidence.** On accept, the workflow renders
   the signed PDF and stores its SHA-256 on
   ``BudgetSignature.document_hash``. The same hash is shown to
   staff and is what binds the signature to that exact PDF. Don't
   bypass this on new acceptance paths.
-- **Public signed-PDF download** uses the same per-token cookie as
-  the rest of the public flow — never expose the signed PDF on a
-  cookie-less route. Audit rows go to ``BudgetAccessLog`` with
-  ``success=True`` so they don't contribute to the lockout
-  counter.
+- **Manual-total budgets (`is_manual_total=True`)** skip the item
+  system entirely — no `BudgetItem` rows, `total`/`subtotal` set
+  directly via `BudgetService.set_manual_total` instead of
+  `_recalculate_totals`. `set_manual_total` has **no status guard**,
+  unlike every other budget mutation — it can be called even on an
+  `accepted` budget. Doing so does **not** regenerate the signed PDF's
+  `document_hash`; the edit is only visible via a `BudgetHistory`
+  `total_updated` entry, and the frontend flags it by comparing
+  `Budget.updated_at` against the signature's `signed_at`. This is a
+  deliberate, scoped exception to tamper-evidence — see ADR 0018. Don't
+  extend "editable after acceptance" to any other field without a new
+  ADR.
+- **`billing`/`reports.get_by_treatment`/`notifications`' itemized
+  email/`migration_import`'s Gesdén mapper all assume `BudgetItem`
+  rows exist.** They're never invoked in a way that requires them for
+  `is_manual_total` budgets (empty `items` is already a valid state
+  those modules already had to tolerate for draft itemized budgets),
+  but don't add new cross-module code that assumes every budget has
+  items.
 - ``budget.completed`` no longer exists. The transition
   ``accepted → completed`` and the manual "Mark completed" button
   were removed in 2026-04: ``completed`` was a bookkeeping flag
@@ -120,7 +123,9 @@ contract.
 
 - `docs/adr/0001-modular-plugin-architecture.md`
 - `docs/adr/0003-event-bus-over-direct-imports.md`
-- `docs/adr/0006-budget-public-link-2-factor-auth.md`
+- `docs/adr/0018-budget-manual-total.md`
+- `docs/adr/0019-remove-budget-patient-self-service.md` (supersedes
+  `0006-budget-public-link-2-factor-auth.md`)
 
 ## CHANGELOG
 

@@ -38,7 +38,7 @@ async def test_resolve_weekly_only(db_session: AsyncSession, test_clinic: Clinic
     timezone, ranges = await AvailabilityService.resolve(
         db_session, test_clinic.id, date(2026, 4, 27), date(2026, 4, 27)
     )
-    assert timezone == "Europe/Madrid"
+    assert timezone == "America/La_Paz"
     open_ranges = [r for r in ranges if r.state == "open"]
     assert len(open_ranges) == 1
     assert open_ranges[0].start.hour == 9

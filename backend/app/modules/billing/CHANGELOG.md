@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- fix(billing): `billing_tax_id` is no longer required to issue an
+  invoice when no country compliance hook is registered for the
+  clinic. This deployment issues plain invoices for internal
+  accounting control rather than government-audited fiscal documents
+  (no Verifactu-equivalent installed for Bolivia) — patients without a
+  NIT can now be invoiced. `billing_name` remains required.
+
+- fix(regionalize): default invoice `BillingAddress.country` to `BO`
+  (`schemas.py`, `invoices/new.vue`); fix the PDF money-locale fallback
+  from `es_ES` to `es_BO` in `pdf.py`.
+
 - i18n: add `fr` fallback to invoice description resolution in
   service layer so French-localized treatment names appear on invoices.
 

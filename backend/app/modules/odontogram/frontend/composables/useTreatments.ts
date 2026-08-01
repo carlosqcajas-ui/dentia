@@ -202,6 +202,7 @@ export function useTreatments() {
       arch?: Arch
       status?: TreatmentStatus
       notes?: string
+      customPrice?: number
     }
   ): Promise<Treatment | null> {
     if (params.scope === 'global_arch' && !params.arch) {
@@ -213,7 +214,8 @@ export function useTreatments() {
       scope: params.scope,
       arch: params.arch,
       status: params.status ?? 'planned',
-      notes: params.notes
+      notes: params.notes,
+      custom_price: params.customPrice
     })
   }
 

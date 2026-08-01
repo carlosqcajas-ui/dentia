@@ -397,8 +397,10 @@ class NotificationGateway:
     async def resolve_patient_by_phone(db: AsyncSession, clinic_id: UUID, phone: str):
         """Resolve a clinic patient by phone, ignoring formatting.
 
-        Exact match first, then a last-9-digits match so ``+34 600 11 22 33``
-        finds a patient stored as ``600112233``. Clinic-scoped.
+        Exact match first, then a last-8-digits match so an inbound
+        ``+591 700 12345`` (WhatsApp/E.164, country code included) finds a
+        patient stored as ``70012345`` (local Bolivian number, no prefix —
+        see ``patients.models.Patient.phone``). Clinic-scoped.
         """
         from app.modules.patients.models import Patient
 
@@ -413,7 +415,7 @@ class NotificationGateway:
         digits = re.sub(r"\D", "", phone or "")
         if len(digits) < 6:
             return None
-        suffix = digits[-9:]
+        suffix = digits[-8:]
         return (
             (
                 await db.execute(

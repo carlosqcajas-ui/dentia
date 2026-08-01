@@ -22,8 +22,8 @@ async def _setup_clinic(db: AsyncSession, auth_headers: dict, client: AsyncClien
         id=uuid4(),
         name="Test Clinic",
         tax_id="A28000000",
-        timezone="Europe/Madrid",
-        currency="EUR",
+        timezone="America/La_Paz",
+        currency="BOB",
         settings={},
     )
     db.add(clinic)
@@ -69,7 +69,7 @@ async def test_create_payment_with_on_account_allocation(
     assert resp.status_code == 201, resp.text
     data = resp.json()["data"]
     assert Decimal(data["amount"]) == Decimal("150.00")
-    assert data["currency"] == "EUR"
+    assert data["currency"] == "BOB"
     assert len(data["allocations"]) == 1
     assert data["allocations"][0]["target_type"] == "on_account"
     assert Decimal(data["net_amount"]) == Decimal("150.00")

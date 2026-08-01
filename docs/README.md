@@ -1,4 +1,4 @@
-# DentalPin Documentation
+# Dentia Documentation
 
 Index for `/docs`. Pick a folder by **type** of doc, never drop new files at this root.
 

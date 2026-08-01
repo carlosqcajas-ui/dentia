@@ -13,8 +13,7 @@ from app.core.plugins import BaseModule
 from app.core.scheduling import ScheduledJob
 from app.database import async_session_maker
 
-from .models import Budget, BudgetAccessLog, BudgetHistory, BudgetItem, BudgetSignature
-from .public_router import public_router
+from .models import Budget, BudgetHistory, BudgetItem, BudgetSignature
 from .router import router
 
 logger = logging.getLogger(__name__)
@@ -36,7 +35,7 @@ class BudgetModule(BaseModule):
         "name": "budget",
         "version": "0.1.0",
         "summary": "Dental treatment quotes, versioning, signatures.",
-        "author": "DentalPin Core Team",
+        "author": "Dentia Core Team",
         "license": "BSL-1.1",
         "category": "official",
         "depends": ["patients", "catalog", "odontogram"],
@@ -70,7 +69,7 @@ class BudgetModule(BaseModule):
     }
 
     def get_models(self) -> list:
-        return [Budget, BudgetItem, BudgetSignature, BudgetHistory, BudgetAccessLog]
+        return [Budget, BudgetItem, BudgetSignature, BudgetHistory]
 
     def get_tools(self) -> list:
         from . import tools
@@ -78,13 +77,7 @@ class BudgetModule(BaseModule):
         return tools.get_tools()
 
     def get_router(self) -> APIRouter:
-        # Compose authenticated + public sub-routers under one mount.
-        # Public endpoints sit under ``/public/budgets/...`` and are
-        # not gated by the clinic context dependency (see ADR 0006).
-        combined = APIRouter()
-        combined.include_router(router)
-        combined.include_router(public_router)
-        return combined
+        return router
 
     def get_permissions(self) -> list[str]:
         return [
@@ -99,7 +92,7 @@ class BudgetModule(BaseModule):
     def get_scheduled_jobs(self) -> list[ScheduledJob]:
         # Plan/budget workflow cron jobs
         # (docs/workflows/plan-budget-flow-tech-plan.md §6).
-        from .tasks import expire_budgets, purge_budget_access_logs, send_budget_reminders
+        from .tasks import expire_budgets
 
         return [
             ScheduledJob(
@@ -108,20 +101,6 @@ class BudgetModule(BaseModule):
                 trigger="cron",
                 trigger_args={"hour": 2, "minute": 0},
                 name="Mark draft/sent budgets past valid_until as expired (daily 02:00)",
-            ),
-            ScheduledJob(
-                id="send_budget_reminders",
-                func=send_budget_reminders,
-                trigger="cron",
-                trigger_args={"hour": 9, "minute": 0},
-                name="Email patients about pending budgets at 7d/14d milestones (daily 09:00)",
-            ),
-            ScheduledJob(
-                id="purge_budget_access_logs",
-                func=purge_budget_access_logs,
-                trigger="cron",
-                trigger_args={"hour": 4, "minute": 0},
-                name="Drop budget_access_logs older than 90 days (daily 04:00)",
             ),
         ]
 
@@ -151,15 +130,16 @@ class BudgetModule(BaseModule):
         clinic_id = data.get("clinic_id")
         budget_id_raw = data.get("budget_id")
         catalog_item_id_raw = data.get("catalog_item_id")
+        description = data.get("description")
         tooth_number = data.get("tooth_number")
         surfaces = data.get("surfaces")
         unit_price_raw = data.get("unit_price")
 
         if not plan_id or not clinic_id or not treatment_id_raw:
             return
-        if not budget_id_raw or not catalog_item_id_raw:
-            # Plan has no budget yet, or treatment without catalog ref —
-            # nothing to mirror.
+        if not budget_id_raw or unit_price_raw is None:
+            # Plan has no budget yet, or treatment has no price at all
+            # (neither catalog nor manual override) — nothing to mirror.
             return
 
         async with async_session_maker() as db:
@@ -173,14 +153,13 @@ class BudgetModule(BaseModule):
                     UUID(clinic_id),
                     UUID(budget_id_raw),
                     {
-                        "catalog_item_id": UUID(catalog_item_id_raw),
+                        "catalog_item_id": UUID(catalog_item_id_raw) if catalog_item_id_raw else None,
+                        "description": description,
                         "quantity": 1,
                         "treatment_id": UUID(treatment_id_raw),
                         "tooth_number": tooth_number,
                         "surfaces": surfaces,
-                        "unit_price": (
-                            Decimal(unit_price_raw) if unit_price_raw is not None else None
-                        ),
+                        "unit_price": Decimal(unit_price_raw),
                     },
                 )
 
@@ -270,26 +249,27 @@ class BudgetModule(BaseModule):
 
                 for snap in items_payload:
                     treatment_id_raw = snap.get("treatment_id")
-                    catalog_item_id_raw = snap.get("catalog_item_id")
-                    if not treatment_id_raw or not catalog_item_id_raw:
+                    unit_price_raw = snap.get("unit_price")
+                    if not treatment_id_raw or unit_price_raw is None:
                         continue
                     treatment_uuid = UUID(treatment_id_raw)
                     if treatment_uuid in existing_treatment_ids:
                         continue
-                    unit_price_raw = snap.get("unit_price")
+                    catalog_item_id_raw = snap.get("catalog_item_id")
                     await BudgetItemService.create_item(
                         db,
                         UUID(clinic_id),
                         UUID(budget_id_raw),
                         {
-                            "catalog_item_id": UUID(catalog_item_id_raw),
+                            "catalog_item_id": (
+                                UUID(catalog_item_id_raw) if catalog_item_id_raw else None
+                            ),
+                            "description": snap.get("description"),
                             "quantity": 1,
                             "treatment_id": treatment_uuid,
                             "tooth_number": snap.get("tooth_number"),
                             "surfaces": snap.get("surfaces"),
-                            "unit_price": (
-                                Decimal(unit_price_raw) if unit_price_raw is not None else None
-                            ),
+                            "unit_price": Decimal(unit_price_raw),
                         },
                     )
 

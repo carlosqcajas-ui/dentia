@@ -3,8 +3,6 @@ import { computed, onMounted, ref, watch } from 'vue'
 import type { Recall, RecallStatus, RecallReason, RecallPriority } from '../../composables/useRecalls'
 import { PERMISSIONS } from '~~/app/config/permissions'
 
-definePageMeta({ middleware: ['auth'] })
-
 const { t, locale } = useI18n()
 const route = useRoute()
 const router = useRouter()

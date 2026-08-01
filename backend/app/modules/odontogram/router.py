@@ -332,6 +332,7 @@ async def create_treatment(
             source_module=data.source_module,
             scope=data.scope,
             arch=data.arch,
+            custom_price=data.custom_price,
         )
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc

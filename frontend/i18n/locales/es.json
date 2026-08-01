@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "DentalPin",
+    "name": "SmileDesign",
     "tagline": "Gestión de clínica dental"
   },
   "demo": {
@@ -59,11 +59,11 @@
     "passwordConfirm": "Repite la contraseña",
     "passwordHint": "Mínimo 8 caracteres, con letras y números",
     "clinicName": "Nombre de la clínica",
-    "taxId": "CIF / NIF",
+    "taxId": "NIT",
     "next": "Siguiente",
     "back": "Atrás",
     "submit": "Crear y empezar",
-    "success": "¡Todo listo! Bienvenido a DentalPin",
+    "success": "¡Todo listo! Bienvenido a SmileDesign",
     "firstNameRequired": "Introduce el nombre",
     "lastNameRequired": "Introduce los apellidos",
     "emailRequired": "Introduce el correo electrónico",
@@ -73,7 +73,7 @@
     "passwordWeak": "La contraseña debe incluir letras y números",
     "passwordMismatch": "Las contraseñas no coinciden",
     "clinicNameRequired": "Introduce el nombre de la clínica",
-    "taxIdRequired": "Introduce el CIF / NIF",
+    "taxIdRequired": "Introduce el NIT",
     "alreadyInitialized": "El sistema ya está configurado. Inicia sesión.",
     "error": "No se pudo completar la configuración. Inténtalo de nuevo"
   },
@@ -120,7 +120,7 @@
     "returnToInvoice": "Volver a factura",
     "billingName": "Nombre/Razón social",
     "billingNamePlaceholder": "Nombre o razón social para facturas",
-    "billingTaxId": "NIF/CIF",
+    "billingTaxId": "NIT",
     "billingEmail": "Email de facturación",
     "billingAddress": "Dirección de facturación",
     "billingComplete": "Datos completos",
@@ -201,8 +201,8 @@
       "namePlaceholder": "Nombre del tutor",
       "relationship": "Relación",
       "relationshipPlaceholder": "Seleccionar relación",
-      "dni": "DNI/NIE",
-      "dniPlaceholder": "Documento de identidad",
+      "dni": "CI",
+      "dniPlaceholder": "Cédula de identidad",
       "phone": "Teléfono",
       "phonePlaceholder": "Teléfono del tutor",
       "email": "Email",
@@ -623,6 +623,10 @@
     },
     "planning": "Planificando",
     "diagnosisMode": "Diagnóstico",
+    "treatmentBar": {
+      "price": "Precio",
+      "pricePlaceholder": "Precio para este caso"
+    },
     "treatmentList": {
       "title": "Listado de Tratamientos",
       "noTreatments": "No hay tratamientos registrados"
@@ -911,7 +915,7 @@
       "afternoon": "Buenas tardes",
       "evening": "Buenas noches"
     },
-    "welcome": "Bienvenido a DentalPin",
+    "welcome": "Bienvenido a SmileDesign",
     "welcomeMessage": "Comienza creando tu primer paciente.",
     "quickActions": {
       "newAppointment": "Nueva cita",
@@ -1035,7 +1039,7 @@
       "items": {
         "clinicInfo": {
           "label": "Completa los datos de la clínica",
-          "description": "Nombre, CIF/NIF y dirección aparecerán en presupuestos y facturas."
+          "description": "Nombre, NIT y dirección aparecerán en presupuestos y facturas."
         },
         "cabinets": {
           "label": "Crea al menos un gabinete",
@@ -1051,7 +1055,7 @@
     "clinicName": "Nombre de la clínica",
     "clinicInfo": "Información de la Clínica",
     "clinicInfoDescription": "Estos datos aparecerán en presupuestos y documentos",
-    "taxId": "CIF/NIF",
+    "taxId": "NIT",
     "legalName": "Razón social",
     "legalNameHelp": "Nombre legal de la entidad para facturación. Si lo dejas vacío, se usará el nombre de la clínica.",
     "street": "Dirección",
@@ -1065,6 +1069,7 @@
     "timezoneHelp": "Todos los horarios y citas se interpretan en esta zona.",
     "currency": "Moneda",
     "currencyHelp": "Moneda de la clínica para presupuestos, facturas y catálogo.",
+    "currencyFixedHelp": "Fijada en bolivianos (BOB) para este sistema.",
     "editClinicInfo": "Editar información",
     "clinicUpdated": "Información de la clínica actualizada",
     "clinicUpdateError": "Error al actualizar la información",
@@ -1083,6 +1088,16 @@
     "userActive": "Usuario activo",
     "userInactiveNote": "(No podrá iniciar sesión)",
     "saveChanges": "Guardar Cambios",
+    "password": "Contraseña",
+    "passwordDescription": "Cámbiala en cualquier momento, por ejemplo tras usar una contraseña temporal.",
+    "changePassword": "Cambiar contraseña",
+    "currentPassword": "Contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "passwordTooShort": "La nueva contraseña debe tener al menos 8 caracteres",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "passwordChanged": "Contraseña actualizada",
+    "passwordCurrentWrong": "La contraseña actual no es correcta",
     "noCabinets": "No hay gabinetes configurados",
     "addCabinet": "Añadir",
     "newCabinet": "Nuevo Gabinete",
@@ -1465,7 +1480,7 @@
       "labelPlaceholder": "Ej. Toma de medidas",
       "price": "Importe",
       "add": "Añadir sesión",
-      "sumStatus": "Suma {sum} € · Total {total} €"
+      "sumStatus": "Suma {sum} Bs · Total {total} Bs"
     },
     "categoryCreated": "Categoría creada",
     "categoryUpdated": "Categoría actualizada",
@@ -1825,6 +1840,15 @@
     "validUntilHint": "Dejar vacío para presupuesto sin fecha de caducidad",
     "noExpiry": "Sin fecha de caducidad",
     "createAndAddItems": "Crear y añadir tratamientos",
+    "createManual": "Crear presupuesto",
+    "totalMode": {
+      "label": "Tipo de presupuesto",
+      "itemized": "Con desglose",
+      "manual": "Monto libre",
+      "itemizedHint": "Se añaden tratamientos uno por uno y el total se calcula solo.",
+      "manualHint": "Escribes el total a mano, sin desglose de tratamientos. Podrás editarlo en cualquier momento, incluso después de enviado o firmado."
+    },
+    "totalUpdatedAfterSigning": "Total modificado después de la firma",
     "subtotal": "Subtotal",
     "totalDiscount": "Descuento total",
     "totalTax": "IVA total",
@@ -1897,7 +1921,11 @@
       "toothNumberPlaceholder": "Ej: 11, 21, 36...",
       "surfaces": "Superficies",
       "notes": "Notas",
-      "notesPlaceholder": "Observaciones sobre este tratamiento..."
+      "notesPlaceholder": "Observaciones sobre este tratamiento...",
+      "useCustom": "Prefiero escribir un tratamiento y precio personalizados",
+      "useCatalog": "Elegir del catálogo en su lugar",
+      "customDescriptionPlaceholder": "Descripción del tratamiento",
+      "customPricePlaceholder": "Precio"
     },
     "signature": {
       "title": "Firma digital",
@@ -1921,6 +1949,7 @@
       "patient": "Paciente",
       "guardian": "Tutor legal",
       "representative": "Representante",
+      "otherSigner": "Firma un tutor o representante en vez del paciente",
       "accept": "Acepto los términos del presupuesto",
       "signHere": "Firma aquí",
       "clear": "Limpiar firma"
@@ -2189,7 +2218,7 @@
     "professional": "Profesional",
     "billingData": "Datos de facturación",
     "billingName": "Nombre/Razón social",
-    "taxId": "NIF/CIF",
+    "taxId": "NIT",
     "billingEmail": "Email de facturación",
     "billingAddress": "Dirección de facturación",
     "billingDataComplete": "Datos completos",

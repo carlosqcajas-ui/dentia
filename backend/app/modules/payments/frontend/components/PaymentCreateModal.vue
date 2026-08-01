@@ -15,6 +15,7 @@
  */
 
 import type {
+  Patient,
   PaymentAllocationCreate,
   PaymentMethod,
   PaymentRecord
@@ -109,11 +110,18 @@ const showAdvanced = ref(false)
 const showSecondaryMethods = ref(false)
 const splitManually = ref(false)
 const amountInputRef = ref<HTMLInputElement | null>(null)
+const selectedPatient = ref<Patient | null>(null)
+
+function handlePatientSelect(patient: Patient | null) {
+  selectedPatient.value = patient
+  form.value.patient_id = patient?.id || ''
+}
 
 // Reset whenever the modal opens — keeps state from leaking between calls.
 watch(() => props.open, async (isOpen) => {
   if (isOpen) {
     form.value = buildInitialForm()
+    selectedPatient.value = null
     formError.value = null
     showAdvanced.value = false
     showSecondaryMethods.value = false
@@ -269,9 +277,11 @@ function handleKeydown(e: KeyboardEvent) {
           v-else
           :label="t('payments.new.patient')"
         >
-          <UInput
-            v-model="form.patient_id"
+          <PatientVisualSelector
+            :model-value="selectedPatient"
             :placeholder="t('payments.new.patientPlaceholder')"
+            in-modal
+            @update:model-value="handlePatientSelect"
           />
         </UFormField>
 

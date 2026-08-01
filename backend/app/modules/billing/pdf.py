@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 from .models import Invoice
 
-_LOCALE_BY_LANG = {"es": "es_ES", "en": "en_US"}
+_LOCALE_BY_LANG = {"es": "es_BO", "en": "en_US"}
 
 
 class InvoicePDFService:
@@ -106,7 +106,7 @@ class InvoicePDFService:
         is_credit_note = invoice.credit_note_for_id is not None
 
         # Format currency from clinic.currency, locale derived from language.
-        money_locale = _LOCALE_BY_LANG.get(locale, "es_ES")
+        money_locale = _LOCALE_BY_LANG.get(locale, "es_BO")
 
         def format_currency(amount: Decimal) -> str:
             return _fmt_currency(amount, clinic.currency, locale=money_locale)
@@ -608,7 +608,7 @@ class InvoicePDFService:
             {legal_notices_html}
 
             <div class="footer">
-                {labels["generated_by"]} DentalPin | {date.today().strftime("%d/%m/%Y %H:%M")}
+                {labels["generated_by"]} SmileDesign | {date.today().strftime("%d/%m/%Y %H:%M")}
             </div>
         </body>
         </html>
@@ -645,7 +645,7 @@ class InvoicePDFService:
             "due_date": "Fecha vencimiento",
             "billing_info": "Datos de Facturación",
             "billing_name": "Nombre/Razón social",
-            "tax_id": "NIF/CIF",
+            "tax_id": "NIT",
             "address": "Dirección",
             "patient": "Paciente",
             "items": "Conceptos",

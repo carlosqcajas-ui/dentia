@@ -1,1 +1,1 @@
-# DentalPin Backend
+# Dentia Backend

@@ -21,20 +21,20 @@ class Clinic(Base, TimestampMixin):
 
     id: Mapped[UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid4)
     name: Mapped[str] = mapped_column(String(200))
-    tax_id: Mapped[str] = mapped_column(String(20))  # CIF/NIF
+    tax_id: Mapped[str] = mapped_column(String(20))  # NIT (Bolivia) / CIF-NIF elsewhere
     legal_name: Mapped[str | None] = mapped_column(String(200), default=None)
     address: Mapped[dict | None] = mapped_column(JSONB, default=dict)
     phone: Mapped[str | None] = mapped_column(String(20))
     email: Mapped[str | None] = mapped_column(String(255))
-    # IANA timezone id (e.g. "Europe/Madrid"). Single source of truth
+    # IANA timezone id (e.g. "America/La_Paz"). Single source of truth
     # for any module that needs local-time semantics — schedules,
     # reports, future billing date-windows, etc.
     timezone: Mapped[str] = mapped_column(
-        String(64), nullable=False, server_default="Europe/Madrid"
+        String(64), nullable=False, server_default="America/La_Paz"
     )
     # ISO 4217 currency code. Single source of truth for any module
     # that renders money — budgets, invoices, catalog, reports.
-    currency: Mapped[str] = mapped_column(String(3), nullable=False, server_default="EUR")
+    currency: Mapped[str] = mapped_column(String(3), nullable=False, server_default="BOB")
     settings: Mapped[dict] = mapped_column(JSONB, default=dict)
 
     # Relationships

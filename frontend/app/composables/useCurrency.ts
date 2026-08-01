@@ -3,8 +3,9 @@
 // - Locale follows the user's UI language (Intl handles separators/symbols).
 //
 // Components that render money should call `format()` (or use the `<Money>`
-// component, which delegates here). No callsite should hardcode 'EUR' or
-// inline `Intl.NumberFormat`.
+// component, which delegates here). No callsite should hardcode a currency
+// (Dentia is a single-market Bolivia deployment — currency is always 'BOB')
+// or inline `Intl.NumberFormat`.
 
 export function useCurrency() {
   const { currentClinic } = useClinic()
@@ -14,7 +15,7 @@ export function useCurrency() {
     if (amount == null || amount === '') return '—'
     const value = typeof amount === 'string' ? Number(amount) : amount
     if (Number.isNaN(value)) return '—'
-    const currency = currentClinic.value?.currency ?? 'EUR'
+    const currency = currentClinic.value?.currency ?? 'BOB'
     return new Intl.NumberFormat(currentLocale.value, {
       style: 'currency',
       currency
@@ -22,7 +23,7 @@ export function useCurrency() {
   }
 
   function symbol(): string {
-    const currency = currentClinic.value?.currency ?? 'EUR'
+    const currency = currentClinic.value?.currency ?? 'BOB'
     const parts = new Intl.NumberFormat(currentLocale.value, {
       style: 'currency',
       currency,
@@ -34,6 +35,6 @@ export function useCurrency() {
   return {
     format,
     symbol,
-    currency: computed(() => currentClinic.value?.currency ?? 'EUR')
+    currency: computed(() => currentClinic.value?.currency ?? 'BOB')
   }
 }

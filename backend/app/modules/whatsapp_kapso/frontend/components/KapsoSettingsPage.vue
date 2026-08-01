@@ -129,7 +129,7 @@ function copyWebhook() {
             <UInput v-model="form.business_account_id" />
           </UFormField>
           <UFormField :label="t('whatsapp_kapso.displayPhone')">
-            <UInput v-model="form.display_phone_number" placeholder="+34 600 11 22 33" />
+            <UInput v-model="form.display_phone_number" placeholder="+591 700 12345" />
           </UFormField>
           <UFormField :label="t('whatsapp_kapso.webhookSecret')" :help="settings?.has_webhook_secret ? t('whatsapp_kapso.secretStored') : ''">
             <UInput v-model="form.webhook_secret" type="password" :placeholder="settings?.has_webhook_secret ? '••••••••' : ''" autocomplete="off" />
@@ -174,7 +174,7 @@ function copyWebhook() {
       <UCard>
         <template #header><span class="font-medium">{{ t('whatsapp_kapso.test') }}</span></template>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <UInput v-model="test.to_number" placeholder="+34600112233" />
+          <UInput v-model="test.to_number" placeholder="+59170012345" />
           <USelect v-model="test.template_name" :items="approvedTemplates.map(tpl => ({ label: tpl.name, value: tpl.name }))" :placeholder="t('whatsapp_kapso.template')" />
           <UButton icon="i-lucide-send" :disabled="!test.to_number || !test.template_name" @click="onTest">
             {{ t('whatsapp_kapso.sendTest') }}

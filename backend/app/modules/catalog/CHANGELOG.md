@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- fix(regionalize): replace the unused Spanish VAT brackets (`Reducido
+  10%`, `General 21%`) in `seed.py` with Bolivia's IVA (13%);
+  `VAT_TYPES` simplifies to `exempt` (default) + `standard` (13%). No
+  seeded treatment used the old brackets. Also replaced hardcoded `€`
+  with `Bs` in `CatalogItemModal.vue` price inputs.
+
 - i18n: correct French dental terminology in seed data (Contention,
   Bracket, Scellement de sillons, Fluoration, Diagnostic, ...).
 

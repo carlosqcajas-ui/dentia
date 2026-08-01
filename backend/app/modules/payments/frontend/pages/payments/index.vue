@@ -13,8 +13,6 @@ import { PERMISSIONS } from '~~/app/config/permissions'
  * an invoiced-vs-paid comparison.
  */
 
-definePageMeta({ middleware: 'auth' })
-
 const { t, locale } = useI18n()
 const api = useApi()
 const { can } = usePermissions()

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Seed DentalPin with demo data
+# Seed Dentia with demo data
 # Usage: ./scripts/seed-demo.sh [--lang en|es]
 #
 # Examples:

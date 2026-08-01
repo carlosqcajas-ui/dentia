@@ -174,6 +174,22 @@ export function useBudgets() {
     return response.data
   }
 
+  async function setManualTotal(id: string, total: number): Promise<Budget> {
+    const response = await api.put<ApiResponse<Budget>>(
+      `/api/v1/budget/budgets/${id}/total`,
+      { total }
+    )
+
+    budgets.value = budgets.value.map(b =>
+      b.id === id ? { ...b, total: response.data.total } : b
+    )
+    if (currentBudget.value?.id === id) {
+      currentBudget.value = { ...currentBudget.value, total: response.data.total }
+    }
+
+    return response.data
+  }
+
   async function deleteBudget(id: string): Promise<void> {
     await api.del(`/api/v1/budget/budgets/${id}`)
 
@@ -440,6 +456,7 @@ export function useBudgets() {
     fetchBudget,
     createBudget,
     updateBudget,
+    setManualTotal,
     deleteBudget,
 
     // Items

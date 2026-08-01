@@ -1,9 +1,11 @@
 """Authentication router with rate limiting."""
 
+import secrets
+import string
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from jose import JWTError
 from slowapi import Limiter
@@ -22,10 +24,14 @@ from .models import Clinic, ClinicMembership, User
 from .permissions import CORE_PERMISSIONS, ROLES, expand_permissions, get_role_permissions
 from .schemas import (
     AuthResponse,
+    ChangePassword,
     ClinicMetadataResponse,
     ClinicMetadataUpdate,
     ClinicResponse,
     MeResponse,
+    OperatorClinicCreate,
+    OperatorClinicCreateResponse,
+    OperatorClinicSummary,
     ProfessionalResponse,
     SetupStatusResponse,
     SystemSetup,
@@ -116,8 +122,8 @@ async def setup(
     clinic = Clinic(
         name=data.clinic_name,
         tax_id=data.clinic_tax_id,
-        timezone=data.timezone or "Europe/Madrid",
-        currency=data.currency or "EUR",
+        timezone=data.timezone or "America/La_Paz",
+        currency=data.currency or "BOB",
     )
     db.add(clinic)
     await db.flush()
@@ -140,6 +146,177 @@ async def setup(
     refresh_token = create_refresh_token(user.id, token_version=user.token_version)
 
     return TokenResponse(access_token=access_token, refresh_token=refresh_token)
+
+
+# --- Operator: manual clinic provisioning (pre self-serve) -------------
+#
+# `/setup` self-closes after the first clinic exists (see above), so this
+# is the only way to add clinic #2+ until self-serve signup is built.
+# Gated by `X-Operator-Key` matching `settings.OPERATOR_SECRET_KEY` —
+# unset by default, which disables these routes entirely. Not part of
+# the normal RBAC system since there is no logged-in user yet.
+
+
+def _generate_temp_password() -> str:
+    """Random password guaranteed to pass ``validate_password_strength``."""
+    alphabet = string.ascii_letters + string.digits
+    while True:
+        candidate = "".join(secrets.choice(alphabet) for _ in range(14))
+        if any(c.isalpha() for c in candidate) and any(c.isdigit() for c in candidate):
+            return candidate
+
+
+async def verify_operator_key(
+    x_operator_key: Annotated[str | None, Header(alias="X-Operator-Key")] = None,
+) -> None:
+    """Guard for the /operator/* routes."""
+    if not settings.OPERATOR_SECRET_KEY:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Operator endpoints are disabled (OPERATOR_SECRET_KEY not set)",
+        )
+    if not x_operator_key or not secrets.compare_digest(x_operator_key, settings.OPERATOR_SECRET_KEY):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid operator key")
+
+
+@router.post(
+    "/operator/clinics",
+    response_model=ApiResponse[OperatorClinicCreateResponse],
+    status_code=status.HTTP_201_CREATED,
+)
+@limiter.limit("20/hour")
+async def operator_create_clinic(
+    request: Request,
+    data: OperatorClinicCreate,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[None, Depends(verify_operator_key)],
+) -> ApiResponse[OperatorClinicCreateResponse]:
+    """Provision a new clinic + its first admin user with a temp password."""
+    existing = await db.execute(select(User).where(User.email == data.admin_email))
+    if existing.scalar_one_or_none():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Email already registered",
+        )
+
+    clinic = Clinic(
+        name=data.clinic_name,
+        tax_id=data.clinic_tax_id,
+        timezone=data.timezone or "America/La_Paz",
+        currency=data.currency or "BOB",
+    )
+    db.add(clinic)
+    await db.flush()
+
+    temp_password = _generate_temp_password()
+    user = User(
+        email=data.admin_email,
+        password_hash=hash_password(temp_password),
+        first_name=data.admin_first_name,
+        last_name=data.admin_last_name,
+    )
+    db.add(user)
+    await db.flush()
+
+    db.add(ClinicMembership(user_id=user.id, clinic_id=clinic.id, role="admin"))
+    await db.commit()
+
+    return ApiResponse(
+        data=OperatorClinicCreateResponse(
+            clinic_id=clinic.id,
+            admin_user_id=user.id,
+            admin_email=user.email,
+            temp_password=temp_password,
+        )
+    )
+
+
+@router.get("/operator/clinics", response_model=PaginatedApiResponse[OperatorClinicSummary])
+async def operator_list_clinics(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[None, Depends(verify_operator_key)],
+) -> PaginatedApiResponse[OperatorClinicSummary]:
+    """List every clinic with basic membership counts."""
+    result = await db.execute(
+        select(Clinic).options(
+            selectinload(Clinic.memberships).selectinload(ClinicMembership.user)
+        )
+    )
+    clinics = result.scalars().all()
+
+    summaries = [
+        OperatorClinicSummary(
+            id=c.id,
+            name=c.name,
+            tax_id=c.tax_id,
+            admin_count=sum(1 for m in c.memberships if m.role == "admin"),
+            active_user_count=sum(1 for m in c.memberships if m.user.is_active),
+            total_user_count=len(c.memberships),
+        )
+        for c in clinics
+    ]
+    return PaginatedApiResponse(
+        data=summaries, total=len(summaries), page=1, page_size=len(summaries) or 1
+    )
+
+
+@router.post("/operator/clinics/{clinic_id}/deactivate", response_model=ApiResponse[dict])
+async def operator_deactivate_clinic(
+    clinic_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[None, Depends(verify_operator_key)],
+) -> ApiResponse[dict]:
+    """Deactivate every single-clinic user of this clinic (soft 'baja').
+
+    Users who also belong to another clinic are left untouched so
+    deactivating clinic A never locks someone out of clinic B.
+    """
+    result = await db.execute(
+        select(User)
+        .join(ClinicMembership, ClinicMembership.user_id == User.id)
+        .where(ClinicMembership.clinic_id == clinic_id)
+        .options(selectinload(User.memberships))
+    )
+    users = result.scalars().unique().all()
+
+    deactivated, skipped_multi_clinic = 0, 0
+    for user in users:
+        if len(user.memberships) > 1:
+            skipped_multi_clinic += 1
+            continue
+        if user.is_active:
+            user.is_active = False
+            user.token_version += 1
+            deactivated += 1
+
+    await db.commit()
+    return ApiResponse(
+        data={"deactivated": deactivated, "skipped_multi_clinic": skipped_multi_clinic}
+    )
+
+
+@router.post("/operator/clinics/{clinic_id}/reactivate", response_model=ApiResponse[dict])
+async def operator_reactivate_clinic(
+    clinic_id: UUID,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[None, Depends(verify_operator_key)],
+) -> ApiResponse[dict]:
+    """Reactivate every user of this clinic."""
+    result = await db.execute(
+        select(User)
+        .join(ClinicMembership, ClinicMembership.user_id == User.id)
+        .where(ClinicMembership.clinic_id == clinic_id)
+    )
+    users = result.scalars().unique().all()
+
+    reactivated = 0
+    for user in users:
+        if not user.is_active:
+            user.is_active = True
+            reactivated += 1
+
+    await db.commit()
+    return ApiResponse(data={"reactivated": reactivated})
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -310,6 +487,31 @@ async def get_me(
             permissions=permissions,
         )
     )
+
+
+@router.post("/change-password", response_model=ApiResponse[dict])
+@limiter.limit("5/hour")
+async def change_password(
+    request: Request,
+    data: ChangePassword,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ApiResponse[dict]:
+    """Self-service password change — e.g. after a temp password from
+    the operator clinic-provisioning flow."""
+    if not verify_password(data.current_password, current_user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Current password is incorrect",
+        )
+
+    is_valid, error_msg = validate_password_strength(data.new_password)
+    if not is_valid:
+        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=error_msg)
+
+    current_user.password_hash = hash_password(data.new_password)
+    await db.commit()
+    return ApiResponse(data={"changed": True})
 
 
 @router.get("/users", response_model=PaginatedApiResponse[UserWithRoleResponse])

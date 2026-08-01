@@ -92,15 +92,15 @@ async def _apply(ctx, *, patient_id, professional_id, payload, canonical=None):
         entity_type="patient",
         canonical_uuid=str(patient_id),
         source_system="gesden",
-        dentalpin_table="patients",
-        dentalpin_id=patient_id,
+        dentia_table="patients",
+        dentia_id=patient_id,
     )
     await ctx.resolver.set(
         entity_type="professional",
         canonical_uuid=str(professional_id),
         source_system="gesden",
-        dentalpin_table="users",
-        dentalpin_id=professional_id,
+        dentia_table="users",
+        dentia_id=professional_id,
     )
     payload.setdefault("patient_uuid", str(patient_id))
     payload.setdefault("professional_uuid", str(professional_id))

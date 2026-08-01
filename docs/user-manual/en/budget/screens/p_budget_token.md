@@ -13,7 +13,7 @@ related_permissions:
 related_paths:
   - backend/app/modules/budget/frontend/pages/p/budget/[token].vue
   - backend/app/modules/budget/router.py
-last_verified_commit: b1b82f5
+last_verified_commit: b79f849
 ---
 
 # Public patient acceptance
@@ -53,7 +53,8 @@ the link is forwarded to them.
 
 1. A welcome screen with the clinic name and a code field.
 2. After verifying: header with clinic + patient, line items with
-   totals, validity, and assigned professional.
+   totals, validity, and assigned professional. *Free-amount*
+   budgets skip the line items list — just the total.
 3. **Accept** and **Reject** buttons (Reject asks for a reason).
 4. **Download PDF** of the budget.
 
@@ -70,7 +71,7 @@ the link is forwarded to them.
 
 ## Permissions
 
-This is a public screen: no DentalPin permissions are tied to it.
+This is a public screen: no Dentia permissions are tied to it.
 The clinic-side actions that support it require `budget.write` in
 the clinic (send, resend, set/change code, unlock).
 

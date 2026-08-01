@@ -815,7 +815,7 @@ async def test_record_payment_and_history(db_session, test_clinic) -> None:
     )
     assert res.ok
     assert res.data["amount"] == 50.1
-    assert res.data["currency"] == "EUR"
+    assert res.data["currency"] == "BOB"
 
     # Allocation sum mismatch → structured workflow error.
     res = await tool_registry.call(

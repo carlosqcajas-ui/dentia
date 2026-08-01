@@ -1,4 +1,4 @@
-# DentalPin
+# Dentia
 
 [![en](https://img.shields.io/badge/lang-en-red.svg)](./README.md)
 [![es](https://img.shields.io/badge/lang-es-yellow.svg)](./README.es.md)
@@ -6,13 +6,13 @@
 
 Logiciel open source de gestion de cliniques dentaires. Conçu avec une architecture modulaire pour l'extensibilité.
 
-## Pourquoi DentalPin ?
+## Pourquoi Dentia ?
 
 Les cliniques dentaires du monde entier partagent les mêmes besoins fondamentaux : gérer les patients, planifier les rendez-vous, suivre les traitements et exploiter leur pratique efficacement. Pourtant, le paysage logiciel est fragmenté en dizaines de solutions localisées et propriétaires qui enferment les cliniques dans des contrats coûteux et des technologies obsolètes.
 
 **Nous croyons qu'il est temps d'agir.**
 
-DentalPin repose sur un principe simple : **une plateforme ouverte pour les cliniques dentaires partout**. Pas une autre solution régionale, mais une base mondiale que toute clinique peut adopter, que tout développeur peut étendre, et que toute communauté peut localiser.
+Dentia repose sur un principe simple : **une plateforme ouverte pour les cliniques dentaires partout**. Pas une autre solution régionale, mais une base mondiale que toute clinique peut adopter, que tout développeur peut étendre, et que toute communauté peut localiser.
 
 ### Pourquoi maintenant ?
 
@@ -30,11 +30,11 @@ L'IA a fondamentalement changé ce que les petites équipes peuvent construire. 
 
 Nous ne construisons pas seulement un logiciel — nous posons les fondations d'un écosystème. Une plateforme où les développeurs contribuent des modules, les cliniques partagent des améliorations, et toute la communauté dentaire bénéficie de l'innovation collective.
 
-Les cliniques méritent mieux que des logiciels propriétaires et coûteux de la décennie précédente. DentalPin est l'alternative ouverte.
+Les cliniques méritent mieux que des logiciels propriétaires et coûteux de la décennie précédente. Dentia est l'alternative ouverte.
 
 ## ✨ Copilot IA
 
-DentalPin est livré avec un **assistant IA agentic intégré** qui transforme toute la clinique en quelque chose avec quoi vous pouvez simplement discuter. Demandez-lui de trouver un patient, libérer un créneau, relancer un devis sans réponse, ou vous faire un briefing de la journée — en français, espagnol ou anglais — et il agit sur vos données réelles.
+Dentia est livré avec un **assistant IA agentic intégré** qui transforme toute la clinique en quelque chose avec quoi vous pouvez simplement discuter. Demandez-lui de trouver un patient, libérer un créneau, relancer un devis sans réponse, ou vous faire un briefing de la journée — en français, espagnol ou anglais — et il agit sur vos données réelles.
 
 ![AI Copilot](docs/screenshots/ia.png)
 
@@ -52,11 +52,11 @@ Agnostique au fournisseur en couche interne (abstraction du fournisseur LLM), av
 
 ## Site web
 
-Rendez-vous sur [**dentalpin.com**](https://www.dentalpin.com) pour des informations produit, des fonctionnalités et des détails commerciaux.
+Rendez-vous sur [**dentia.com**](https://www.dentia.com) pour des informations produit, des fonctionnalités et des détails commerciaux.
 
 ## Communauté
 
-Rejoignez notre [**chaîne Telegram**](https://t.me/dentalpin) pour du support, de l'aide à l'installation et des questions.
+Rejoignez notre [**chaîne Telegram**](https://t.me/dentia) pour du support, de l'aide à l'installation et des questions.
 
 ## Captures d'écran
 
@@ -82,6 +82,11 @@ Rejoignez notre [**chaîne Telegram**](https://t.me/dentalpin) pour du support, 
 ![Settings](docs/screenshots/settings.png)
 
 ## Démarrage rapide
+
+Copiez `.env.example` vers `.env` et définissez `DATABASE_URL` avec une
+instance Postgres 15 accessible (un projet [Supabase](https://supabase.com)
+gratuit convient) — `docker-compose` n'inclut plus de conteneur Postgres
+local.
 
 ```bash
 # Démarrer les services
@@ -165,6 +170,7 @@ Voir [docs/user-manual/demo.md](docs/user-manual/demo.md) pour les détails comp
 ### Prérequis
 
 - Docker et Docker Compose
+- Une chaîne de connexion Postgres 15 (par ex. un projet Supabase) pour `DATABASE_URL`
 - Python 3.11+ (pour le développement local du backend)
 - Node.js 18+ (pour le développement local du frontend)
 
@@ -244,7 +250,7 @@ Runbook complet + référence des fixtures : [docs/technical/e2e-testing.md](doc
 
 ## Architecture
 
-DentalPin utilise une architecture modulaire de type plugin. Chaque fonctionnalité est un module autonome qui :
+Dentia utilise une architecture modulaire de type plugin. Chaque fonctionnalité est un module autonome qui :
 - Déclare ses modèles SQLAlchemy
 - Fournit un routeur FastAPI
 - Peut s'abonner aux événements d'autres modules
@@ -255,7 +261,7 @@ Voir [docs/architecture.md](docs/architecture.md) pour les détails.
 
 Business Source License 1.1 (BSL 1.1)
 
-**Limitation d'utilisation :** Vous ne pouvez pas proposer DentalPin en tant que SaaS commercial pour la gestion de cliniques dentaires.
+**Limitation d'utilisation :** Vous ne pouvez pas proposer Dentia en tant que SaaS commercial pour la gestion de cliniques dentaires.
 
 **Date de conversion :** 4 ans après la publication
 

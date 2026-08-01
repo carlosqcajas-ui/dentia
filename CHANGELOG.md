@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to DentalPin are documented here. Format loosely
+All notable changes to Dentia are documented here. Format loosely
 follows [Keep a Changelog](https://keepachangelog.com/) and the project
 uses [Semantic Versioning](https://semver.org/).
 

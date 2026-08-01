@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- perf: drop the redundant page-level `auth` middleware from
+  `pages/payments/index.vue` and `pages/reports/payments/index.vue` —
+  the global `auth.global.ts` middleware already runs `auth.init()`
+  on every navigation.
+
 - i18n: add French locale (`fr.json`) with full UI coverage.
 
 - fix(security): lock the payment row `FOR UPDATE` before the refund

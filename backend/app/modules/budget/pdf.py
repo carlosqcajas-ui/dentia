@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 from .models import Budget, BudgetSignature
 
-_LOCALE_BY_LANG = {"es": "es_ES", "en": "en_US"}
+_LOCALE_BY_LANG = {"es": "es_BO", "en": "en_US"}
 
 
 class BudgetPDFService:
@@ -165,7 +165,7 @@ class BudgetPDFService:
         labels = BudgetPDFService._get_labels(locale)
 
         # Format currency from clinic.currency, locale derived from language.
-        money_locale = _LOCALE_BY_LANG.get(locale, "es_ES")
+        money_locale = _LOCALE_BY_LANG.get(locale, "es_BO")
 
         def format_currency(amount: Decimal) -> str:
             return _fmt_currency(amount, clinic.currency, locale=money_locale)
@@ -521,6 +521,8 @@ class BudgetPDFService:
             </div>
 
             <div class="section">
+                {
+            "" if budget.is_manual_total else f'''
                 <div class="section-title">{labels["treatments"]}</div>
                 <table>
                     <thead>
@@ -537,6 +539,8 @@ class BudgetPDFService:
                         {items_html}
                     </tbody>
                 </table>
+                '''
+        }
 
                 <div class="totals">
                     <table>
@@ -591,7 +595,7 @@ class BudgetPDFService:
             {BudgetPDFService._render_signature_section(signature, labels, locale)}
 
             <div class="footer">
-                {labels["generated_by"]} DentalPin | {date.today().strftime("%d/%m/%Y %H:%M")}
+                {labels["generated_by"]} SmileDesign | {date.today().strftime("%d/%m/%Y %H:%M")}
             </div>
         </body>
         </html>

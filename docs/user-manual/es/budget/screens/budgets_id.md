@@ -28,6 +28,7 @@ related_endpoints:
   - POST /api/v1/budget/budgets/{budget_id}/unlock-public
   - PUT /api/v1/budget/budgets/{budget_id}
   - PUT /api/v1/budget/budgets/{budget_id}/items/{item_id}
+  - PUT /api/v1/budget/budgets/{budget_id}/total
 related_permissions:
   - budget.read
   - budget.write
@@ -37,7 +38,7 @@ related_permissions:
 related_paths:
   - backend/app/modules/budget/frontend/pages/budgets/[id].vue
   - backend/app/modules/budget/router.py
-last_verified_commit: b1b82f5
+last_verified_commit: b79f849
 ---
 
 # Detalle del presupuesto
@@ -67,11 +68,20 @@ Desde aquí se mueve el presupuesto por todo su flujo
   firmado.
 - **Crear factura.** Si el presupuesto está *aceptado* y aún tiene
   ítems sin facturar, aparece el botón *Crear factura* que lleva a
-  `/invoices/from-budget/{id}`.
+  `/invoices/from-budget/{id}`. No aplica a presupuestos de monto
+  libre (sin ítems).
+- **Presupuestos de monto libre** (`is_manual_total`) no muestran la
+  tabla de líneas — en su lugar hay una tarjeta de **Total** con un
+  botón **Editar** siempre disponible, sin importar el estado del
+  presupuesto. Si el total se edita después de que el presupuesto
+  fue aceptado y firmado, aparece un aviso "Total modificado después
+  de la firma": el PDF firmado ya guardado deja de coincidir con el
+  total actual (ver ADR 0018).
 
 ## Editar líneas
 
-> Requiere `budget.write` y que el presupuesto esté en `draft`.
+> Requiere `budget.write` y que el presupuesto esté en `draft`. Solo
+> aplica a presupuestos con desglose.
 
 1. Pulsa **Editar** sobre la línea o **Añadir ítem** abajo de la
    tabla.
@@ -80,6 +90,17 @@ Desde aquí se mueve el presupuesto por todo su flujo
 3. Al guardar se publica un `budget.updated` lógico interno (no
    evento aún), pero el invariante de totales se reescribe en el
    backend.
+
+## Editar el total (presupuestos de monto libre)
+
+> Requiere `budget.write`. Disponible en cualquier estado —
+> incluido `accepted`.
+
+1. En la tarjeta **Total**, pulsa **Editar**.
+2. Escribe el nuevo monto y **Guardar**.
+3. Si el presupuesto ya estaba firmado, verás el aviso de "editado
+   después de la firma" — el cambio queda registrado en el
+   historial de auditoría, pero el PDF firmado no se regenera.
 
 ## Enviar al paciente
 
@@ -138,3 +159,6 @@ Desde aquí se mueve el presupuesto por todo su flujo
   instalado. La columna lateral muestra solo totales e info.
 - **El PDF firmado da 404.** El presupuesto no está aceptado todavía.
   El PDF firmado solo existe a partir del estado `accepted`.
+- **No veo la tabla de líneas / el botón de añadir ítem.** El
+  presupuesto es de *monto libre* (`is_manual_total`); solo tiene la
+  tarjeta de Total editable, sin desglose.

@@ -1,5 +1,5 @@
 <!--
-PR template for DentalPin. The checklist enforces conventions documented
+PR template for Dentia. The checklist enforces conventions documented
 in CLAUDE.md and docs/checklists/. Tick boxes that apply; strike through
 the rest. Reviewers: don't approve while a relevant box is unchecked.
 -->
@@ -28,7 +28,7 @@ the rest. Reviewers: don't approve while a relevant box is unchecked.
 
 ### If a new module was added
 
-- [ ] Entry point registered in `backend/pyproject.toml` (`[project.entry-points."dentalpin.modules"]`)
+- [ ] Entry point registered in `backend/pyproject.toml` (`[project.entry-points."dentia.modules"]`)
 - [ ] `backend/app/modules/<name>/CLAUDE.md` written (purpose, public API, events, permissions, gotchas)
 - [ ] `backend/app/modules/<name>/CHANGELOG.md` started
 - [ ] Alembic migrations live on the module's own branch (`branch_labels=("<name>",)`)

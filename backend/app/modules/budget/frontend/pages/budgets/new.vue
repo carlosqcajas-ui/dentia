@@ -29,6 +29,8 @@ if (!can(PERMISSIONS.budget.write)) {
 // Form state
 const selectedPatient = ref<Patient | null>(null)
 const isCreating = ref(false)
+const isManualTotal = ref(false)
+const manualTotal = ref<number | undefined>(undefined)
 
 const form = reactive({
   valid_from: new Date().toISOString().split('T')[0],
@@ -37,8 +39,13 @@ const form = reactive({
   internal_notes: ''
 })
 
-// Computed: can submit if patient is selected
-const canSubmit = computed(() => !!selectedPatient.value && !isCreating.value)
+// Computed: can submit if patient is selected (and, in manual-total
+// mode, a positive total was entered)
+const canSubmit = computed(() =>
+  !!selectedPatient.value
+  && !isCreating.value
+  && (!isManualTotal.value || (manualTotal.value ?? 0) > 0)
+)
 
 async function handleCreate() {
   if (!selectedPatient.value) return
@@ -51,7 +58,9 @@ async function handleCreate() {
       valid_from: form.valid_from,
       valid_until: form.valid_until || undefined,
       patient_notes: form.patient_notes || undefined,
-      internal_notes: form.internal_notes || undefined
+      internal_notes: form.internal_notes || undefined,
+      is_manual_total: isManualTotal.value,
+      total: isManualTotal.value ? manualTotal.value : undefined
     }
 
     const budget = await createBudget(data)
@@ -115,6 +124,42 @@ async function handleCreate() {
           </p>
         </UFormField>
 
+        <!-- Total mode -->
+        <UFormField :label="t('budget.totalMode.label')">
+          <div class="flex gap-2">
+            <UButton
+              :variant="isManualTotal ? 'outline' : 'solid'"
+              color="neutral"
+              @click="isManualTotal = false"
+            >
+              {{ t('budget.totalMode.itemized') }}
+            </UButton>
+            <UButton
+              :variant="isManualTotal ? 'solid' : 'outline'"
+              color="neutral"
+              @click="isManualTotal = true"
+            >
+              {{ t('budget.totalMode.manual') }}
+            </UButton>
+          </div>
+          <p class="text-caption text-subtle mt-1">
+            {{ isManualTotal ? t('budget.totalMode.manualHint') : t('budget.totalMode.itemizedHint') }}
+          </p>
+        </UFormField>
+
+        <UFormField
+          v-if="isManualTotal"
+          :label="t('budget.total')"
+          required
+        >
+          <UInput
+            v-model.number="manualTotal"
+            type="number"
+            min="0"
+            step="0.01"
+          />
+        </UFormField>
+
         <!-- Validity dates -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UFormField
@@ -171,7 +216,7 @@ async function handleCreate() {
             :disabled="!canSubmit"
             :loading="isCreating"
           >
-            {{ t('budget.createAndAddItems') }}
+            {{ isManualTotal ? t('budget.createManual') : t('budget.createAndAddItems') }}
           </UButton>
         </div>
       </form>

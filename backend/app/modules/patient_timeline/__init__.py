@@ -28,7 +28,7 @@ class PatientTimelineModule(BaseModule):
         "name": "patient_timeline",
         "version": "0.1.0",
         "summary": "Patient timeline — unified activity log.",
-        "author": "DentalPin Core Team",
+        "author": "Dentia Core Team",
         "license": "BSL-1.1",
         "category": "official",
         "depends": ["patients"],
@@ -82,8 +82,6 @@ class PatientTimelineModule(BaseModule):
             EventType.BUDGET_REJECTED: events.on_budget_rejected,
             EventType.BUDGET_EXPIRED: events.on_budget_expired,
             EventType.BUDGET_RENEGOTIATED: events.on_budget_renegotiated,
-            EventType.BUDGET_VIEWED: events.on_budget_viewed,
-            EventType.BUDGET_REMINDER_SENT: events.on_budget_reminder_sent,
             # Treatment plan workflow transitions
             EventType.TREATMENT_PLAN_CONFIRMED: events.on_treatment_plan_confirmed,
             EventType.TREATMENT_PLAN_CLOSED: events.on_treatment_plan_closed,

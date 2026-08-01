@@ -616,6 +616,11 @@ class TreatmentPlanService:
                     if treatment and treatment.catalog_item_id
                     else None
                 ),
+                "description": (
+                    treatment.clinical_type
+                    if treatment and not treatment.catalog_item_id
+                    else None
+                ),
                 "tooth_number": primary_tooth,
                 "surfaces": primary_surfaces,
                 "unit_price": (
@@ -1238,7 +1243,9 @@ class TreatmentPlanService:
         items_payload = []
         for plan_item in plan_items.scalars().all():
             treatment = plan_item.treatment
-            if not treatment or not treatment.catalog_item_id:
+            if not treatment or treatment.price_snapshot is None:
+                # Nothing to bill: no treatment, or no price at all
+                # (neither catalog nor manual override).
                 continue
             primary_tooth = treatment.teeth[0].tooth_number if treatment.teeth else None
             primary_surfaces = treatment.teeth[0].surfaces if treatment.teeth else None
@@ -1246,14 +1253,13 @@ class TreatmentPlanService:
                 {
                     "item_id": str(plan_item.id),
                     "treatment_id": str(treatment.id),
-                    "catalog_item_id": str(treatment.catalog_item_id),
+                    "catalog_item_id": (
+                        str(treatment.catalog_item_id) if treatment.catalog_item_id else None
+                    ),
+                    "description": None if treatment.catalog_item_id else treatment.clinical_type,
                     "tooth_number": primary_tooth,
                     "surfaces": primary_surfaces,
-                    "unit_price": (
-                        str(treatment.price_snapshot)
-                        if treatment.price_snapshot is not None
-                        else None
-                    ),
+                    "unit_price": str(treatment.price_snapshot),
                 }
             )
 
@@ -1406,8 +1412,6 @@ class TreatmentPlanService:
                 b.status AS budget_status,
                 b.total AS budget_total,
                 b.valid_until,
-                b.last_reminder_sent_at,
-                b.viewed_at,
                 na.id AS next_appt_id,
                 na.start_at AS next_appt_start_at,
                 na.cabinet_id AS next_appt_cabinet,
@@ -1458,8 +1462,6 @@ class TreatmentPlanService:
                     "status": r["budget_status"],
                     "total": float(r["budget_total"]) if r["budget_total"] is not None else None,
                     "valid_until": r["valid_until"],
-                    "last_reminder_sent_at": r["last_reminder_sent_at"],
-                    "viewed_at": r["viewed_at"],
                 }
             next_appt = None
             if r["next_appt_id"]:
@@ -1516,6 +1518,9 @@ class TreatmentPlanService:
                     "catalog_item_id": (
                         str(treatment.catalog_item_id) if treatment.catalog_item_id else None
                     ),
+                    # Fallback label for budget lines with no catalog item —
+                    # the clinical_type key (translatable client-side).
+                    "description": None if treatment.catalog_item_id else treatment.clinical_type,
                     "tooth_number": primary_tooth,
                     "surfaces": primary_surfaces,
                     "unit_price": unit_price,

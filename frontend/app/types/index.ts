@@ -491,6 +491,8 @@ export interface TreatmentCreate {
   notes?: string
   budget_item_id?: string
   source_module?: string
+  /** Manual price override for this specific case — takes precedence over catalog pricing. */
+  custom_price?: number
 }
 
 /** PUT /treatments/{id} — header-level edits only. */
@@ -821,7 +823,8 @@ export interface CatalogItemBrief {
 export interface BudgetItem {
   id: string
   budget_id: string
-  catalog_item_id: string
+  catalog_item_id?: string
+  description?: string
   // Pricing
   unit_price: number
   quantity: number
@@ -855,7 +858,8 @@ export interface BudgetItem {
 }
 
 export interface BudgetItemCreate {
-  catalog_item_id: string
+  catalog_item_id?: string
+  description?: string
   quantity?: number
   unit_price?: number
   discount_type?: DiscountType
@@ -942,14 +946,14 @@ export interface Budget {
   total_discount: number
   total_tax: number
   total: number
+  // When true, ``total`` is set by hand (no line items) — see
+  // BudgetService.set_manual_total on the backend.
+  is_manual_total: boolean
   // Notes
   internal_notes?: string
   patient_notes?: string
   // Insurance
   insurance_estimate?: number
-  // Public link token (ADR 0006). Present on every budget; reception
-  // shares ``${origin}/p/budget/${public_token}`` with the patient.
-  public_token?: string
   // Timestamps
   created_at: string
   updated_at: string
@@ -989,6 +993,10 @@ export interface BudgetCreate {
   internal_notes?: string
   patient_notes?: string
   items?: BudgetItemCreate[]
+  // Manual-total mode — no items, staff enters the total directly.
+  // Requires `total` when set.
+  is_manual_total?: boolean
+  total?: number
 }
 
 export interface BudgetUpdate {

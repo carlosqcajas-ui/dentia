@@ -11,37 +11,55 @@ const PROFESSIONAL_COLORS = [
   '#84CC16' // lime
 ]
 
+const FRESH_MS = 60_000 // cached list is reused for a minute across navigations
+
 export function useProfessionals() {
   const api = useApi()
   const { t } = useI18n()
 
-  const professionals = ref<Professional[]>([])
-  const isLoading = ref(false)
-  const error = ref<string | null>(null)
+  // Shared across every component via useState — without this each
+  // useProfessionals() call got its own empty ref, so navigating between
+  // agenda/treatment-plans/schedules/patient-timeline re-fetched the same
+  // professionals list on every page.
+  const professionals = useState<Professional[]>('professionals:list', () => [])
+  const isLoading = useState<boolean>('professionals:loading', () => false)
+  const error = useState<string | null>('professionals:error', () => null)
+  const lastLoadedAt = useState<number>('professionals:loadedAt', () => 0)
 
-  const professionalColors = ref<Map<string, string>>(new Map())
+  const professionalColors = computed<Map<string, string>>(() => {
+    const map = new Map<string, string>()
+    professionals.value.forEach((prof, index) => {
+      const color = PROFESSIONAL_COLORS[index % PROFESSIONAL_COLORS.length]
+      if (color) map.set(prof.id, color)
+    })
+    return map
+  })
 
-  async function fetchProfessionals(): Promise<void> {
+  let inFlight: Promise<void> | null = null
+
+  async function fetchProfessionals(force = false): Promise<void> {
+    const age = Date.now() - lastLoadedAt.value
+    if (!force && professionals.value.length > 0 && age < FRESH_MS) return
+    if (inFlight) return inFlight
+
     isLoading.value = true
     error.value = null
 
-    try {
-      const response = await api.get<PaginatedResponse<Professional>>('/api/v1/auth/professionals')
-      professionals.value = response.data
+    inFlight = (async () => {
+      try {
+        const response = await api.get<PaginatedResponse<Professional>>('/api/v1/auth/professionals')
+        professionals.value = response.data
+        lastLoadedAt.value = Date.now()
+      } catch (e) {
+        error.value = t('professionals.toast.loadFailed')
+        console.error('Failed to fetch professionals:', e)
+      } finally {
+        isLoading.value = false
+        inFlight = null
+      }
+    })()
 
-      professionalColors.value = new Map()
-      response.data.forEach((prof, index) => {
-        const color = PROFESSIONAL_COLORS[index % PROFESSIONAL_COLORS.length]
-        if (color) {
-          professionalColors.value.set(prof.id, color)
-        }
-      })
-    } catch (e) {
-      error.value = t('professionals.toast.loadFailed')
-      console.error('Failed to fetch professionals:', e)
-    } finally {
-      isLoading.value = false
-    }
+    return inFlight
   }
 
   function getProfessionalById(id: string): Professional | undefined {

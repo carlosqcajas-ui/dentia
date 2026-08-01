@@ -42,8 +42,8 @@ async def _setup_clinic(
         id=uuid4(),
         name=name,
         tax_id="A28000000",
-        timezone="Europe/Madrid",
-        currency="EUR",
+        timezone="America/La_Paz",
+        currency="BOB",
         settings={},
     )
     db.add(clinic)

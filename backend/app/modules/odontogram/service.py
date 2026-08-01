@@ -649,6 +649,7 @@ class TreatmentService:
         source_module: str,
         scope: str,
         arch: str | None = None,
+        custom_price: Decimal | None = None,
     ) -> Treatment:
         """Create a Treatment with its TreatmentTooth children."""
         now = datetime.now(UTC)
@@ -671,15 +672,19 @@ class TreatmentService:
         ):
             raise ValueError(f"clinical_type={resolved_clinical_type} requires at least 2 teeth")
 
-        # 4. Compute snapshots.
-        price_snapshot = None
+        # 4. Compute snapshots. A manual custom_price (set by the professional
+        # for this specific case) always wins over the catalog's computed
+        # price — it also lets a treatment be priced with no catalog_item at
+        # all, for clinics that quote case-by-case.
+        price_snapshot = custom_price
         duration_snapshot = None
         vat_rate_snapshot = None
         if catalog_item is not None:
             pricing_teeth = [
                 PricingTooth(role=t["role"], surfaces=t["surfaces"]) for t in teeth_inputs
             ]
-            price_snapshot = compute_price_snapshot(catalog_item, pricing_teeth)
+            if price_snapshot is None:
+                price_snapshot = compute_price_snapshot(catalog_item, pricing_teeth)
             duration_snapshot = compute_duration_snapshot(catalog_item, len(teeth_inputs))
             if catalog_item.vat_type_rel is not None:
                 vat_rate_snapshot = catalog_item.vat_type_rel.rate

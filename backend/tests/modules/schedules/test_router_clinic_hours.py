@@ -14,7 +14,7 @@ async def test_get_clinic_hours_returns_default(
     assert response.status_code == 200
     data = response.json()["data"]
     assert data["clinic_id"] == str(test_clinic.id)
-    assert data["timezone"] == "Europe/Madrid"
+    assert data["timezone"] == "America/La_Paz"
     assert len(data["days"]) == 7
 
 

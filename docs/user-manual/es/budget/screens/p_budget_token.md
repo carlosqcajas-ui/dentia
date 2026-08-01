@@ -13,7 +13,7 @@ related_permissions:
 related_paths:
   - backend/app/modules/budget/frontend/pages/p/budget/[token].vue
   - backend/app/modules/budget/router.py
-last_verified_commit: b1b82f5
+last_verified_commit: b79f849
 ---
 
 # Aceptación pública del paciente
@@ -55,7 +55,9 @@ paciente cuando le pasan el enlace.
 1. Pantalla de bienvenida con el nombre de la clínica y un campo de
    código.
 2. Tras verificar: cabecera con clínica + paciente, listado de
-   ítems con totales, validez y profesional asignado.
+   ítems con totales, validez y profesional asignado. En
+   presupuestos de *monto libre* no hay listado de ítems — solo el
+   total.
 3. Botones **Aceptar** y **Rechazar** (este último pide motivo).
 4. **Descargar PDF** del presupuesto.
 
@@ -73,7 +75,7 @@ paciente cuando le pasan el enlace.
 
 ## Permisos
 
-Pantalla pública: no hay permisos de DentalPin asociados. Las
+Pantalla pública: no hay permisos de Dentia asociados. Las
 acciones internas que la soportan sí requieren `budget.write` en la
 clínica (enviar, reenviar, generar/cambiar código, desbloquear).
 

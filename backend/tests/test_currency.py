@@ -32,21 +32,26 @@ def test_format_currency_locale_dash_normalized() -> None:
     assert out == "$100.00"
 
 
+def test_format_currency_bob_es_bo() -> None:
+    out = format_currency(Decimal("1234.56"), "BOB", locale="es_BO")
+    assert "Bs" in out
+
+
 # ---------------------------------------------------------------------------
 # Clinic currency PUT
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_clinic_currency_default_is_eur(
+async def test_clinic_currency_default_is_bob(
     db_session: AsyncSession, test_clinic: Clinic
 ) -> None:
     await db_session.refresh(test_clinic)
-    assert test_clinic.currency == "EUR"
+    assert test_clinic.currency == "BOB"
 
 
 @pytest.mark.asyncio
-async def test_update_clinic_currency_persists(
+async def test_update_clinic_currency_accepts_bob_noop(
     client: AsyncClient,
     auth_headers: dict[str, str],
     test_clinic: Clinic,
@@ -54,15 +59,30 @@ async def test_update_clinic_currency_persists(
 ) -> None:
     response = await client.put(
         "/api/v1/auth/clinics",
-        json={"currency": "USD"},
+        json={"currency": "BOB"},
         headers=auth_headers,
     )
     assert response.status_code == 200
-    assert response.json()["data"]["currency"] == "USD"
+    assert response.json()["data"]["currency"] == "BOB"
 
     db_session.expire_all()
     await db_session.refresh(test_clinic)
-    assert test_clinic.currency == "USD"
+    assert test_clinic.currency == "BOB"
+
+
+@pytest.mark.asyncio
+async def test_update_clinic_currency_rejects_non_bob(
+    client: AsyncClient,
+    auth_headers: dict[str, str],
+    test_clinic: Clinic,
+) -> None:
+    """Dentia is a Bolivia-only deployment — BOB is the only accepted value."""
+    response = await client.put(
+        "/api/v1/auth/clinics",
+        json={"currency": "USD"},
+        headers=auth_headers,
+    )
+    assert response.status_code == 422
 
 
 @pytest.mark.asyncio

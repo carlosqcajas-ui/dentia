@@ -126,8 +126,11 @@ MODULES_ROOT = BACKEND_ROOT / "app" / "modules"
 
 config = context.config
 
-# Set the database URL from settings
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+# Set the database URL from settings. configparser's interpolation treats
+# "%" as a template marker (e.g. a URL-encoded password like "%26"), so it
+# must be escaped as "%%" before being stored — get_main_option() undoes
+# the escaping on read.
+config.set_main_option("sqlalchemy.url", settings.DATABASE_URL.replace("%", "%%"))
 
 # Register main linear + discovered branches so Alembic can resolve heads
 # across all of them. ``version_path_separator = os`` in alembic.ini, so

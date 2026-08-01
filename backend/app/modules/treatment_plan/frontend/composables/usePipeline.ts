@@ -27,8 +27,6 @@ export interface PipelineBudgetBrief {
   status: string
   total: number | null
   valid_until: string | null
-  last_reminder_sent_at: string | null
-  viewed_at: string | null
 }
 
 export interface PipelineNextAppointment {

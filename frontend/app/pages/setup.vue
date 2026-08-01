@@ -106,7 +106,7 @@ async function onSubmit() {
     <div class="text-center mb-6">
       <img
         src="/logo-icon.svg"
-        alt="DentalPin"
+        alt="SmileDesign"
         width="56"
         height="56"
         class="mx-auto mb-3"
@@ -289,7 +289,7 @@ async function onSubmit() {
     </UCard>
 
     <p class="text-center text-caption text-subtle mt-6">
-      &copy; {{ new Date().getFullYear() }} DentalPin
+      &copy; {{ new Date().getFullYear() }} SmileDesign
     </p>
   </div>
 </template>

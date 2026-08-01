@@ -4,7 +4,7 @@
  *
  * Option shape: { value, label, icon?, badge?, badgeColor? }. The active
  * segment gets a white surface lift on a muted track. Optional badges
- * surface contextual counts/values ("3", "Debe 320 €") next to the label
+ * surface contextual counts/values ("3", "Debe 320 Bs") next to the label
  * without changing the active state.
  */
 type BadgeColor = 'neutral' | 'primary' | 'success' | 'warning' | 'error' | 'info'

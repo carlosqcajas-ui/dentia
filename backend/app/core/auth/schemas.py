@@ -16,7 +16,7 @@ def _validate_iana_timezone(value: str | None) -> str | None:
     except ZoneInfoNotFoundError as exc:
         raise ValueError(
             f"Invalid timezone '{value}'. Must be an IANA id "
-            "(e.g. 'Europe/Madrid', 'America/New_York')."
+            "(e.g. 'America/La_Paz')."
         ) from exc
     return value
 
@@ -87,7 +87,9 @@ class ClinicMetadataUpdate(BaseModel):
     phone: str | None = Field(default=None, max_length=20)
     email: EmailStr | None = None
     timezone: str | None = Field(default=None, max_length=64)
-    currency: str | None = Field(default=None, pattern="^[A-Z]{3}$")
+    # Dentia is a single-market (Bolivia) deployment — BOB is the only
+    # accepted value, never a free-form ISO-4217 code.
+    currency: str | None = Field(default=None, pattern="^BOB$")
 
     @field_validator("timezone")
     @classmethod
@@ -217,9 +219,62 @@ class SystemSetup(BaseModel):
     clinic_name: str = Field(min_length=1, max_length=200)
     clinic_tax_id: str = Field(min_length=1, max_length=20)
     timezone: str | None = Field(default=None, max_length=64)
-    currency: str | None = Field(default=None, pattern="^[A-Z]{3}$")
+    # Dentia is a single-market (Bolivia) deployment — BOB is the only
+    # accepted value, never a free-form ISO-4217 code.
+    currency: str | None = Field(default=None, pattern="^BOB$")
 
     @field_validator("timezone")
     @classmethod
     def validate_timezone(cls, value: str | None) -> str | None:
         return _validate_iana_timezone(value)
+
+
+# --- Operator: manual clinic provisioning (pre self-serve) -------------
+
+
+class OperatorClinicCreate(BaseModel):
+    """Operator payload: create a new clinic + its first admin user."""
+
+    clinic_name: str = Field(min_length=1, max_length=200)
+    clinic_tax_id: str = Field(min_length=1, max_length=20)
+    timezone: str | None = Field(default=None, max_length=64)
+    # Dentia is a single-market (Bolivia) deployment — BOB is the only
+    # accepted value, never a free-form ISO-4217 code.
+    currency: str | None = Field(default=None, pattern="^BOB$")
+    admin_first_name: str = Field(min_length=1, max_length=100)
+    admin_last_name: str = Field(min_length=1, max_length=100)
+    admin_email: EmailStr
+
+    @field_validator("timezone")
+    @classmethod
+    def validate_timezone(cls, value: str | None) -> str | None:
+        return _validate_iana_timezone(value)
+
+
+class OperatorClinicCreateResponse(BaseModel):
+    """Result of provisioning a clinic — the temp password is shown once."""
+
+    clinic_id: UUID
+    admin_user_id: UUID
+    admin_email: str
+    temp_password: str
+
+
+class OperatorClinicSummary(BaseModel):
+    """Row shown in the operator clinic list."""
+
+    id: UUID
+    name: str
+    tax_id: str
+    admin_count: int
+    active_user_count: int
+    total_user_count: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ChangePassword(BaseModel):
+    """Self-service password change for the current user."""
+
+    current_password: str
+    new_password: str = Field(min_length=8)

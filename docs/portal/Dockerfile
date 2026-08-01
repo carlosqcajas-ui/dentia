@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.6
 #
-# Multi-stage build for the DentalPin documentation portal.
+# Multi-stage build for the Dentia documentation portal.
 #
 # Build context MUST be the repository root (or at minimum the `docs/`
 # folder), because VitePress' `srcDir` is configured as `..` — pointing one
@@ -8,11 +8,11 @@
 # rendered without duplication.
 #
 # Coolify usage:
-#   - Repository:        martinezsalmeron/dentalpin
+#   - Repository:        martinezsalmeron/dentia
 #   - Build context:     /                  (repo root)
 #   - Dockerfile path:   docs/portal/Dockerfile
 #   - Exposed port:      80
-#   - Domain:            docs.dentalpin.com
+#   - Domain:            docs.dentia.com
 #   - TLS:               Coolify (Let's Encrypt)
 
 # ---- Builder ----------------------------------------------------------------

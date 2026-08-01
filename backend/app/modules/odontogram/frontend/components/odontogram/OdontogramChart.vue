@@ -121,6 +121,8 @@ const highlightedTeeth = computed(() => [
 // separately in `selectedCatalogItemId`.
 const selectedTreatmentType = ref<string | null>(null)
 const selectedCatalogItemId = ref<string | null>(null)
+/** Manual price override for this case — takes precedence over catalog pricing. */
+const selectedCustomPrice = ref<number | null>(null)
 const selectedTreatmentStatus = ref<TreatmentStatus>('existing')
 
 // Multi-tooth selection (bridges, splints, multiple veneers/crowns)
@@ -484,6 +486,9 @@ async function confirmMultiToothSelection(
   if (selectedCatalogItemId.value) {
     payload.catalog_item_id = selectedCatalogItemId.value
   }
+  if (selectedCustomPrice.value !== null) {
+    payload.custom_price = selectedCustomPrice.value
+  }
 
   const created = await createTreatment(props.patientId, payload)
   if (!created) {
@@ -501,6 +506,7 @@ async function confirmMultiToothSelection(
   emit('treatmentsChanged')
   selectedTreatmentType.value = null
   selectedCatalogItemId.value = null
+  selectedCustomPrice.value = null
 }
 
 function resetMultiToothSelection() {
@@ -532,6 +538,9 @@ async function applyTreatment(toothNumber: number, surfaces?: Surface[]) {
   if (selectedTreatmentType.value) {
     payload.clinical_type = selectedTreatmentType.value as ClinicalType
   }
+  if (selectedCustomPrice.value !== null) {
+    payload.custom_price = selectedCustomPrice.value
+  }
   if (surfaces?.length) payload.surfaces = surfaces
 
   const treatment = await createTreatment(props.patientId, payload)
@@ -556,6 +565,7 @@ async function applyTreatment(toothNumber: number, surfaces?: Surface[]) {
   emit('treatmentsChanged')
   selectedTreatmentType.value = null
   selectedCatalogItemId.value = null
+  selectedCustomPrice.value = null
 }
 
 function handleSurfaceConfirm(surfaces: Surface[]) {
@@ -576,6 +586,7 @@ async function handleUndo() {
 function cancelClickToApplyMode() {
   selectedTreatmentType.value = null
   selectedCatalogItemId.value = null
+  selectedCustomPrice.value = null
   hoveredTooth.value = null
   resetMultiToothSelection()
 }
@@ -877,6 +888,7 @@ defineExpose({
         v-if="!isReadonly"
         v-model:selected-treatment="selectedTreatmentType"
         v-model:selected-catalog-item-id="selectedCatalogItemId"
+        v-model:selected-custom-price="selectedCustomPrice"
         :selected-status="selectedTreatmentStatus"
         :selected-plan-id="planId"
         :plan-context-title="planTitle"

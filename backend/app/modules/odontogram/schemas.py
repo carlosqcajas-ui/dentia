@@ -301,6 +301,16 @@ class TreatmentCreate(BaseModel):
     notes: str | None = None
     budget_item_id: UUID | None = None
     source_module: str = "odontogram"
+    custom_price: Decimal | None = Field(
+        default=None,
+        ge=0,
+        description=(
+            "Manual price override for this specific case, set by the "
+            "professional. Takes precedence over the catalog's computed "
+            "price snapshot, and lets a treatment be priced even without "
+            "a catalog_item_id."
+        ),
+    )
 
     @field_validator("tooth_numbers")
     @classmethod

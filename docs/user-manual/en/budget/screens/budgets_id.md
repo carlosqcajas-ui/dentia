@@ -28,6 +28,7 @@ related_endpoints:
   - POST /api/v1/budget/budgets/{budget_id}/unlock-public
   - PUT /api/v1/budget/budgets/{budget_id}
   - PUT /api/v1/budget/budgets/{budget_id}/items/{item_id}
+  - PUT /api/v1/budget/budgets/{budget_id}/total
 related_permissions:
   - budget.read
   - budget.write
@@ -37,7 +38,7 @@ related_permissions:
 related_paths:
   - backend/app/modules/budget/frontend/pages/budgets/[id].vue
   - backend/app/modules/budget/router.py
-last_verified_commit: b1b82f5
+last_verified_commit: b79f849
 ---
 
 # Budget detail
@@ -64,17 +65,36 @@ signed, invoiced, or renegotiated.
   signed PDF.
 - **Create invoice.** When the budget is *accepted* and still has
   uninvoiced items, a *Create invoice* button appears and takes you
-  to `/invoices/from-budget/{id}`.
+  to `/invoices/from-budget/{id}`. Doesn't apply to free-amount
+  budgets (no items).
+- **Free-amount budgets** (`is_manual_total`) don't show the line
+  items table — instead there's a **Total** card with an **Edit**
+  button that's always available, regardless of the budget's status.
+  Editing the total after the budget was already accepted and signed
+  shows a "Total changed after signing" warning: the already-stored
+  signed PDF no longer matches the current total (see ADR 0018).
 
 ## Edit lines
 
-> Requires `budget.write` and `draft` status.
+> Requires `budget.write` and `draft` status. Only applies to
+> itemized budgets.
 
 1. Click **Edit** on a line or **Add item** below the table.
 2. Change catalog item, tooth, surfaces, quantity, discount, or
    VAT. Totals recompute on save.
 3. The backend rewrites the totals invariant on save (no `update`
    event yet).
+
+## Edit the total (free-amount budgets)
+
+> Requires `budget.write`. Available in any status — including
+> `accepted`.
+
+1. On the **Total** card, click **Edit**.
+2. Type the new amount and **Save**.
+3. If the budget was already signed, you'll see the "changed after
+   signing" warning — the change is logged in the audit history, but
+   the signed PDF is not regenerated.
 
 ## Send to the patient
 
@@ -131,3 +151,6 @@ signed, invoiced, or renegotiated.
   The sidebar shows only totals and info.
 - **Signed PDF returns 404.** The budget is not accepted yet — the
   signed PDF only exists from the `accepted` state on.
+- **No line items table / no add-item button.** The budget is
+  *free-amount* (`is_manual_total`) — it only has the editable Total
+  card, no breakdown.

@@ -8,8 +8,6 @@
  * Admin → /settings/general
  */
 
-definePageMeta({ middleware: 'auth' })
-
 const router = useRouter()
 const { t } = useI18n()
 const registry = useSettingsRegistry()

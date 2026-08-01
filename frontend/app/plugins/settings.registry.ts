@@ -97,18 +97,10 @@ export default defineNuxtPlugin(() => {
     order: 10
   })
 
-  // ---- Modules (link to existing /settings/modules) -----------------
-  registerSettingsPage({
-    path: 'manage',
-    category: 'modules',
-    labelKey: 'settings.modules.title',
-    descriptionKey: 'settings.modules.description',
-    icon: 'i-lucide-blocks',
-    permission: 'admin.clinic.read',
-    to: '/settings/modules',
-    searchKeywords: ['modulo', 'module', 'plugin', 'instalar', 'install'],
-    order: 10
-  })
+  // ---- Modules: intentionally not registered ------------------------
+  // Module install/uninstall is managed exclusively from the operator
+  // backoffice (/operator) — it's a system-wide toggle, not per-clinic,
+  // so clinic admins no longer get a self-service entry point here.
 
   // ---- Account -------------------------------------------------------
   registerSettingsPage({
@@ -121,16 +113,8 @@ export default defineNuxtPlugin(() => {
     searchKeywords: ['perfil', 'profile', 'cuenta', 'account'],
     order: 10
   })
-  registerSettingsPage({
-    path: 'language',
-    category: 'account',
-    labelKey: 'settings.language',
-    descriptionKey: 'settings.languageDescription',
-    icon: 'i-lucide-languages',
-    component: () => import('~/components/settings/pages/LanguagePage.vue'),
-    searchKeywords: ['idioma', 'language', 'locale', 'lang'],
-    order: 20
-  })
+  // Language switcher intentionally not registered — single-market
+  // deployment (La Paz, Bolivia), locked to Spanish in nuxt.config.ts.
 
   // ---- Onboarding rules ---------------------------------------------
   // Rules read state lazily inside the predicate to stay reactive

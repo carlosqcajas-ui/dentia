@@ -56,13 +56,6 @@ class EventType:
     # plan is unlocked back to ``draft``. Payload carries
     # (budget_id, plan_id, patient_id, version, cancelled_at).
     BUDGET_RENEGOTIATED = "budget.renegotiated"
-    # Patient opened the public link (first time). Payload carries
-    # (budget_id, plan_id, patient_id, viewed_at, ip_hash). Idempotent.
-    BUDGET_VIEWED = "budget.viewed"
-    # Automatic reminder dispatched to the patient (7d / 14d milestone).
-    # Payload carries (budget_id, plan_id, patient_id, milestone_days,
-    # sent_at). Only fired when ``budget_reminders_enabled`` for the clinic.
-    BUDGET_REMINDER_SENT = "budget.reminder_sent"
 
     # Email events (legacy — kept for one release; see NOTIFICATION_* below).
     # The notifications gateway dual-publishes these for channel=="email" so

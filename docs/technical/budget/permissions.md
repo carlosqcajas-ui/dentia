@@ -13,7 +13,7 @@ Returned by `BudgetModule.get_permissions()`
 | Permission | Allows | Required by |
 |------------|--------|-------------|
 | `budget.read` | _Describe what this allows._ | _List the endpoints._ |
-| `budget.write` | _Describe what this allows._ | _List the endpoints._ |
+| `budget.write` | _Describe what this allows._ | _List the endpoints._ Includes `PUT /budgets/{id}/total` (set the total on a manual-total budget by hand, any status — see ADR 0018). |
 | `budget.admin` | _Describe what this allows._ | _List the endpoints._ |
 | `budget.renegotiate` | _Describe what this allows._ | _List the endpoints._ |
 | `budget.accept_in_clinic` | _Describe what this allows._ | _List the endpoints._ |

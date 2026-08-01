@@ -375,32 +375,6 @@ async def on_budget_renegotiated(data: dict) -> None:
     )
 
 
-async def on_budget_viewed(data: dict) -> None:
-    await _record(
-        event_type=EventType.BUDGET_VIEWED,
-        event_category="financial",
-        source_table="budgets",
-        data=data,
-        source_id_key="budget_id",
-        title="Presupuesto visto por el paciente",
-        occurred_at_key="viewed_at",
-    )
-
-
-async def on_budget_reminder_sent(data: dict) -> None:
-    milestone = data.get("milestone_days")
-    await _record(
-        event_type=EventType.BUDGET_REMINDER_SENT,
-        event_category="financial",
-        source_table="budgets",
-        data=data,
-        source_id_key="budget_id",
-        title=(f"Recordatorio enviado ({milestone}d)" if milestone else "Recordatorio enviado"),
-        occurred_at_key="sent_at",
-        event_data={"milestone_days": milestone},
-    )
-
-
 async def on_treatment_plan_confirmed(data: dict) -> None:
     plan_number = data.get("plan_number")
     await _record(

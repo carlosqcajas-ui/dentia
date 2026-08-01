@@ -28,7 +28,7 @@ const form = ref({
     city: '',
     postal_code: '',
     province: '',
-    country: 'ES'
+    country: 'BO'
   },
   payment_term_days: 30,
   due_date: '',
@@ -286,7 +286,7 @@ function goBack() {
             <UFormField :label="t('invoice.taxId')">
               <UInput
                 v-model="form.billing_tax_id"
-                placeholder="NIF/CIF"
+                placeholder="NIT"
               />
             </UFormField>
 

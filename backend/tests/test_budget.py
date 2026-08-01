@@ -870,4 +870,224 @@ async def test_global_discount_applied(
     data = budget.json()["data"]
     assert float(data["subtotal"]) == 100.00
     assert float(data["total_discount"]) == 10.00  # 10% of 100
+
+
+# ============================================================================
+# Manual-total ("monto libre") Tests — ADR 0018
+# ============================================================================
+
+
+@pytest.mark.asyncio
+async def test_create_manual_total_budget(
+    client: AsyncClient, auth_headers: dict, budget_clinic_setup: dict
+):
+    """A manual-total budget takes the total directly, no items required."""
+    response = await client.post(
+        "/api/v1/budget/budgets",
+        json={
+            "patient_id": budget_clinic_setup["patient_id"],
+            "valid_from": "2024-01-01",
+            "is_manual_total": True,
+            "total": 500.00,
+        },
+        headers=auth_headers,
+    )
+    assert response.status_code == 201
+    data = response.json()["data"]
+    assert data["is_manual_total"] is True
+    assert float(data["total"]) == 500.00
+    assert data["items"] == []
+
+
+@pytest.mark.asyncio
+async def test_create_manual_total_budget_requires_total(
+    client: AsyncClient, auth_headers: dict, budget_clinic_setup: dict
+):
+    """is_manual_total=True without a total is rejected at the schema level."""
+    response = await client.post(
+        "/api/v1/budget/budgets",
+        json={
+            "patient_id": budget_clinic_setup["patient_id"],
+            "valid_from": "2024-01-01",
+            "is_manual_total": True,
+        },
+        headers=auth_headers,
+    )
+    assert response.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_send_and_accept_manual_total_budget_without_items(
+    client: AsyncClient, auth_headers: dict, budget_clinic_setup: dict
+):
+    """Manual-total budgets can be sent and accepted despite having no items."""
+    create_response = await client.post(
+        "/api/v1/budget/budgets",
+        json={
+            "patient_id": budget_clinic_setup["patient_id"],
+            "valid_from": "2024-01-01",
+            "is_manual_total": True,
+            "total": 500.00,
+        },
+        headers=auth_headers,
+    )
+    budget_id = create_response.json()["data"]["id"]
+
+    send_response = await client.post(
+        f"/api/v1/budget/budgets/{budget_id}/send",
+        json={},
+        headers=auth_headers,
+    )
+    assert send_response.status_code == 200
+    assert send_response.json()["data"]["status"] == "sent"
+
+    accept_response = await client.post(
+        f"/api/v1/budget/budgets/{budget_id}/accept",
+        json={
+            "signature": {
+                "signed_by_name": "Test Patient",
+                "relationship_to_patient": "patient",
+            }
+        },
+        headers=auth_headers,
+    )
+    assert accept_response.status_code == 200
+    assert accept_response.json()["data"]["status"] == "accepted"
+
+
+@pytest.mark.asyncio
+async def test_set_manual_total_before_acceptance(
+    client: AsyncClient, auth_headers: dict, budget_clinic_setup: dict
+):
+    """The total can be edited by hand while still in draft."""
+    create_response = await client.post(
+        "/api/v1/budget/budgets",
+        json={
+            "patient_id": budget_clinic_setup["patient_id"],
+            "valid_from": "2024-01-01",
+            "is_manual_total": True,
+            "total": 500.00,
+        },
+        headers=auth_headers,
+    )
+    budget_id = create_response.json()["data"]["id"]
+
+    response = await client.put(
+        f"/api/v1/budget/budgets/{budget_id}/total",
+        json={"total": 750.00},
+        headers=auth_headers,
+    )
+    assert response.status_code == 200
+    assert float(response.json()["data"]["total"]) == 750.00
+
+
+@pytest.mark.asyncio
+async def test_set_manual_total_after_acceptance(
+    client: AsyncClient, auth_headers: dict, budget_clinic_setup: dict
+):
+    """The whole point of manual-total budgets: the total stays editable
+    even after the patient has accepted/signed — unlike itemized budgets,
+    which reject any edit outside ``draft``."""
+    create_response = await client.post(
+        "/api/v1/budget/budgets",
+        json={
+            "patient_id": budget_clinic_setup["patient_id"],
+            "valid_from": "2024-01-01",
+            "is_manual_total": True,
+            "total": 500.00,
+        },
+        headers=auth_headers,
+    )
+    budget_id = create_response.json()["data"]["id"]
+
+    await client.post(
+        f"/api/v1/budget/budgets/{budget_id}/send", json={}, headers=auth_headers
+    )
+    await client.post(
+        f"/api/v1/budget/budgets/{budget_id}/accept",
+        json={
+            "signature": {
+                "signed_by_name": "Test Patient",
+                "relationship_to_patient": "patient",
+            }
+        },
+        headers=auth_headers,
+    )
+
+    response = await client.put(
+        f"/api/v1/budget/budgets/{budget_id}/total",
+        json={"total": 650.00},
+        headers=auth_headers,
+    )
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["status"] == "accepted"
+    assert float(data["total"]) == 650.00
+
+    history = await client.get(
+        f"/api/v1/budget/budgets/{budget_id}/history",
+        headers=auth_headers,
+    )
+    actions = [entry["action"] for entry in history.json()["data"]]
+    assert "total_updated" in actions
+
+
+@pytest.mark.asyncio
+async def test_set_manual_total_rejected_on_itemized_budget(
+    client: AsyncClient, auth_headers: dict, budget_clinic_setup: dict
+):
+    """The manual-total endpoint refuses to touch a normal itemized budget."""
+    create_response = await client.post(
+        "/api/v1/budget/budgets",
+        json={
+            "patient_id": budget_clinic_setup["patient_id"],
+            "valid_from": "2024-01-01",
+        },
+        headers=auth_headers,
+    )
+    budget_id = create_response.json()["data"]["id"]
+
+    response = await client.put(
+        f"/api/v1/budget/budgets/{budget_id}/total",
+        json={"total": 999.00},
+        headers=auth_headers,
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_manual_total_budget_rejects_items(
+    client: AsyncClient, auth_headers: dict, budget_clinic_setup: dict
+):
+    """Manual-total budgets don't accept line items — the item endpoint
+    refuses rather than silently accepting and letting
+    ``_recalculate_totals`` overwrite the hand-set total."""
+    create_response = await client.post(
+        "/api/v1/budget/budgets",
+        json={
+            "patient_id": budget_clinic_setup["patient_id"],
+            "valid_from": "2024-01-01",
+            "is_manual_total": True,
+            "total": 500.00,
+        },
+        headers=auth_headers,
+    )
+    budget_id = create_response.json()["data"]["id"]
+
+    response = await client.post(
+        f"/api/v1/budget/budgets/{budget_id}/items",
+        json={
+            "catalog_item_id": budget_clinic_setup["catalog_item_id"],
+            "quantity": 1,
+        },
+        headers=auth_headers,
+    )
+    assert response.status_code == 400
+
+    # The manual total is untouched.
+    budget = await client.get(
+        f"/api/v1/budget/budgets/{budget_id}",
+        headers=auth_headers,
+    )
+    assert float(budget.json()["data"]["total"]) == 500.00
     assert float(data["total"]) == 90.00

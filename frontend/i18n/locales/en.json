@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "DentalPin",
+    "name": "SmileDesign",
     "tagline": "Dental clinic management"
   },
   "demo": {
@@ -63,7 +63,7 @@
     "next": "Next",
     "back": "Back",
     "submit": "Create and start",
-    "success": "All set! Welcome to DentalPin",
+    "success": "All set! Welcome to SmileDesign",
     "firstNameRequired": "Enter the first name",
     "lastNameRequired": "Enter the last name",
     "emailRequired": "Enter the email",
@@ -602,6 +602,10 @@
     },
     "planning": "Planning",
     "diagnosisMode": "Diagnosis",
+    "treatmentBar": {
+      "price": "Price",
+      "pricePlaceholder": "Price for this case"
+    },
     "treatmentList": {
       "title": "Treatment List",
       "noTreatments": "No treatments recorded"
@@ -890,7 +894,7 @@
       "afternoon": "Good afternoon",
       "evening": "Good evening"
     },
-    "welcome": "Welcome to DentalPin",
+    "welcome": "Welcome to SmileDesign",
     "welcomeMessage": "Start by creating your first patient.",
     "quickActions": {
       "newAppointment": "New appointment",
@@ -1064,6 +1068,16 @@
     "userActive": "User active",
     "userInactiveNote": "(Cannot log in)",
     "saveChanges": "Save Changes",
+    "password": "Password",
+    "passwordDescription": "Change it any time, e.g. after using a temporary password.",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "passwordTooShort": "The new password must be at least 8 characters",
+    "passwordMismatch": "Passwords do not match",
+    "passwordChanged": "Password updated",
+    "passwordCurrentWrong": "Current password is incorrect",
     "noCabinets": "No cabinets configured",
     "addCabinet": "Add",
     "newCabinet": "New Cabinet",
@@ -1443,7 +1457,7 @@
       "labelPlaceholder": "e.g. Impressions",
       "price": "Amount",
       "add": "Add session",
-      "sumStatus": "Sum {sum} € · Total {total} €"
+      "sumStatus": "Sum {sum} Bs · Total {total} Bs"
     },
     "categoryCreated": "Category created",
     "categoryUpdated": "Category updated",
@@ -1803,6 +1817,15 @@
     "validUntilHint": "Leave empty for quote without expiration date",
     "noExpiry": "No expiration date",
     "createAndAddItems": "Create and add treatments",
+    "createManual": "Create quote",
+    "totalMode": {
+      "label": "Quote type",
+      "itemized": "Itemized",
+      "manual": "Free amount",
+      "itemizedHint": "Add treatments one by one and the total is calculated automatically.",
+      "manualHint": "Enter the total by hand, with no treatment breakdown. You can edit it at any time, even after it has been sent or signed."
+    },
+    "totalUpdatedAfterSigning": "Total changed after signing",
     "subtotal": "Subtotal",
     "totalDiscount": "Total discount",
     "totalTax": "Total VAT",
@@ -1875,7 +1898,11 @@
       "toothNumberPlaceholder": "E.g.: 11, 21, 36...",
       "surfaces": "Surfaces",
       "notes": "Notes",
-      "notesPlaceholder": "Notes about this treatment..."
+      "notesPlaceholder": "Notes about this treatment...",
+      "useCustom": "I'd rather enter a custom treatment and price",
+      "useCatalog": "Choose from catalog instead",
+      "customDescriptionPlaceholder": "Treatment description",
+      "customPricePlaceholder": "Price"
     },
     "signature": {
       "title": "Digital signature",
@@ -1899,6 +1926,7 @@
       "patient": "Patient",
       "guardian": "Legal guardian",
       "representative": "Representative",
+      "otherSigner": "A guardian or representative is signing instead of the patient",
       "accept": "I accept the terms of the quote",
       "signHere": "Sign here",
       "clear": "Clear signature"

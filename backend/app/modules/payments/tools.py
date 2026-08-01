@@ -61,7 +61,7 @@ class PatientPaymentHistoryArgs(BaseModel):
 
 
 async def _currency(ctx: AgentContext) -> str:
-    return (await ctx.db.scalar(select(Clinic.currency).where(Clinic.id == ctx.clinic_id))) or "EUR"
+    return (await ctx.db.scalar(select(Clinic.currency).where(Clinic.id == ctx.clinic_id))) or "BOB"
 
 
 async def _payments_summary(ctx: AgentContext, params: PeriodArgs) -> dict:

@@ -64,7 +64,7 @@ const demographicsForm = reactive({
     city: '',
     postal_code: '',
     province: '',
-    country: 'ES'
+    country: 'BO'
   } as PatientAddress
 })
 
@@ -84,7 +84,7 @@ const billingForm = reactive({
     city: '',
     postal_code: '',
     province: '',
-    country: 'ES'
+    country: 'BO'
   } as PatientBillingAddress
 })
 
@@ -96,10 +96,9 @@ const genderOptions = computed(() => [
   { label: t('patients.gender.preferNotSay'), value: 'prefer_not_say' }
 ])
 
-// National ID type options
+// National ID type options — Bolivia uses CI (Cédula de Identidad)
 const nationalIdTypeOptions = computed(() => [
-  { label: 'DNI', value: 'dni' },
-  { label: 'NIE', value: 'nie' },
+  { label: 'CI', value: 'ci' },
   { label: t('patients.passport'), value: 'passport' }
 ])
 
@@ -125,7 +124,7 @@ function initializeForm() {
     demographicsForm.profession = props.patient.profession || ''
     demographicsForm.workplace = props.patient.workplace || ''
     demographicsForm.preferred_language = props.patient.preferred_language || 'es'
-    demographicsForm.address = props.patient.address || { street: '', city: '', postal_code: '', province: '', country: 'ES' }
+    demographicsForm.address = props.patient.address || { street: '', city: '', postal_code: '', province: '', country: 'BO' }
   } else if (props.section === 'emergency') {
     emergencyForm.value = props.patient.emergency_contact ? { ...props.patient.emergency_contact } : null
   } else if (props.section === 'guardian') {
@@ -134,7 +133,7 @@ function initializeForm() {
     billingForm.billing_name = props.patient.billing_name || ''
     billingForm.billing_tax_id = props.patient.billing_tax_id || ''
     billingForm.billing_email = props.patient.billing_email || ''
-    billingForm.billing_address = props.patient.billing_address || { street: '', city: '', postal_code: '', province: '', country: 'ES' }
+    billingForm.billing_address = props.patient.billing_address || { street: '', city: '', postal_code: '', province: '', country: 'BO' }
   }
 }
 
@@ -378,7 +377,7 @@ const canSave = computed(() => {
             <UFormField :label="t('patients.billingTaxId')">
               <UInput
                 v-model="billingForm.billing_tax_id"
-                placeholder="NIF/CIF"
+                placeholder="NIT"
               />
             </UFormField>
             <UFormField :label="t('patients.billingEmail')">

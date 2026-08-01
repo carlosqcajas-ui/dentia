@@ -21,8 +21,6 @@ import type {
   RefundsReport
 } from '~~/app/types'
 
-definePageMeta({ middleware: 'auth' })
-
 const { t, locale } = useI18n()
 const { format: formatMoney } = useCurrency()
 const { summary, byMethod, byProfessional, aging, refunds, trends } = usePaymentReports()

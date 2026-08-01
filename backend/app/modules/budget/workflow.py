@@ -1,18 +1,15 @@
 """Budget workflow service - state machine and status transitions."""
 
-import hashlib
 import logging
-import secrets
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 from uuid import UUID
 
-import bcrypt
-from sqlalchemy import func, select, text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.events import EventType, event_bus
 
-from .models import Budget, BudgetAccessLog, BudgetSignature
+from .models import Budget, BudgetSignature
 from .service import BudgetHistoryService
 
 logger = logging.getLogger(__name__)
@@ -31,44 +28,10 @@ VALID_TRANSITIONS: dict[str, list[str]] = {
     "cancelled": [],  # Terminal state
 }
 
-# Public-link auth method values stored in ``Budget.public_auth_method``.
-PUBLIC_AUTH_METHODS: set[str] = {"phone_last4", "dob", "manual_code", "none"}
-
-# Patient-facing rejection reasons (closed catalogue from the public link).
-PUBLIC_REJECTION_REASONS: set[str] = {"price", "time", "second_opinion", "other"}
-
-# Lockout / rate-limit policy. See ADR 0006.
-PUBLIC_AUTH_FAIL_LIMIT_WINDOW = 5  # failures inside the rolling window
-PUBLIC_AUTH_FAIL_WINDOW = timedelta(minutes=15)
-PUBLIC_AUTH_TOTAL_FAIL_LOCKOUT = 10  # total failures → permanent token lock
-PUBLIC_SESSION_TTL = timedelta(minutes=30)
-
 # Default budget validity period when the clinic has no override.
 DEFAULT_BUDGET_VALIDITY_DAYS = 30
 # Default plan auto-close window after the budget has expired.
 DEFAULT_PLAN_AUTO_CLOSE_DAYS = 30
-
-
-def _hash_password(plaintext: str) -> str:
-    """Hash a manual-code with bcrypt. Returns the encoded hash string."""
-    return bcrypt.hashpw(plaintext.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-
-
-def _verify_password(plaintext: str, hashed: str) -> bool:
-    """Constant-time bcrypt verification. False on any error."""
-    if not hashed:
-        return False
-    try:
-        return bcrypt.checkpw(plaintext.encode("utf-8"), hashed.encode("utf-8"))
-    except (ValueError, TypeError):
-        return False
-
-
-def _hash_ip(raw_ip: str | None) -> str:
-    """SHA-256 of the requester IP (privacy-preserving). Empty string
-    when no IP is available (e.g. unit tests)."""
-    payload = (raw_ip or "").encode("utf-8")
-    return hashlib.sha256(payload).hexdigest()
 
 
 async def _resolve_clinic_settings(db: AsyncSession, clinic_id: UUID) -> dict:
@@ -123,8 +86,8 @@ class BudgetWorkflowService:
         if not BudgetWorkflowService.can_transition(budget.status, "sent"):
             raise BudgetWorkflowError(f"Cannot send budget from status '{budget.status}'")
 
-        # Check budget has items
-        if not budget.items:
+        # Check budget has items (or a positive manual total)
+        if not budget.items and not (budget.is_manual_total and budget.total > 0):
             raise BudgetWorkflowError("Cannot send empty budget")
 
         previous_status = budget.status
@@ -194,8 +157,8 @@ class BudgetWorkflowService:
         if not BudgetWorkflowService.can_transition(budget.status, "accepted"):
             raise BudgetWorkflowError(f"Cannot accept budget from status '{budget.status}'")
 
-        # Check budget has items
-        if not budget.items:
+        # Check budget has items (or a positive manual total)
+        if not budget.items and not (budget.is_manual_total and budget.total > 0):
             raise BudgetWorkflowError("Cannot accept empty budget")
 
         previous_status = budget.status
@@ -555,232 +518,6 @@ class BudgetWorkflowService:
         return budget
 
     @staticmethod
-    async def mark_viewed(
-        db: AsyncSession,
-        budget: Budget,
-        ip_hash: str | None = None,
-    ) -> Budget:
-        """Idempotently record the first time the patient opened the
-        public link. Publishes ``budget.viewed`` only on the first call.
-        """
-        if budget.viewed_at is not None:
-            return budget
-        budget.viewed_at = datetime.now(UTC)
-        await db.flush()
-        plan_id = await BudgetWorkflowService._lookup_plan_id(db, budget.id)
-        await event_bus.publish(
-            EventType.BUDGET_VIEWED,
-            {
-                "clinic_id": str(budget.clinic_id),
-                "budget_id": str(budget.id),
-                "patient_id": str(budget.patient_id),
-                "plan_id": str(plan_id) if plan_id else None,
-                "viewed_at": budget.viewed_at.isoformat(),
-                "ip_hash": ip_hash,
-            },
-        )
-        return budget
-
-    @staticmethod
-    async def send_reminder(
-        db: AsyncSession,
-        budget: Budget,
-        milestone_days: int,
-    ) -> Budget:
-        """Stamp a reminder dispatch and publish ``budget.reminder_sent``.
-
-        Does not actually send the email — the notifications module
-        subscribes to the event and renders the message.
-        """
-        budget.last_reminder_sent_at = datetime.now(UTC)
-        await db.flush()
-        plan_id = await BudgetWorkflowService._lookup_plan_id(db, budget.id)
-        await event_bus.publish(
-            EventType.BUDGET_REMINDER_SENT,
-            {
-                "clinic_id": str(budget.clinic_id),
-                "budget_id": str(budget.id),
-                "patient_id": str(budget.patient_id),
-                "plan_id": str(plan_id) if plan_id else None,
-                "budget_number": budget.budget_number,
-                "milestone_days": milestone_days,
-                "sent_at": budget.last_reminder_sent_at.isoformat(),
-            },
-        )
-        return budget
-
-    @staticmethod
-    async def set_public_code(
-        db: AsyncSession,
-        budget: Budget,
-        code: str,
-    ) -> Budget:
-        """Configure the manual code for a budget whose patient has no
-        phone or DOB on file. The code is hashed (bcrypt) so the
-        plaintext never lives at rest. Reception is expected to share
-        the code with the patient verbally.
-        """
-        if not (4 <= len(code) <= 6) or not code.isdigit():
-            raise BudgetWorkflowError("Manual code must be 4-6 numeric digits")
-        budget.public_auth_method = "manual_code"
-        budget.public_auth_secret_hash = _hash_password(code)
-        await db.flush()
-        return budget
-
-    @staticmethod
-    async def unlock_public(
-        db: AsyncSession,
-        budget: Budget,
-    ) -> Budget:
-        """Clear ``public_locked_at`` so the existing token works again."""
-        budget.public_locked_at = None
-        await db.flush()
-        return budget
-
-    @staticmethod
-    async def resolve_public_auth_method(
-        db: AsyncSession,
-        clinic_id: UUID,
-        patient_id: UUID,
-        clinic_settings: dict | None = None,
-    ) -> str:
-        """Determine the auth method for a new public link based on the
-        patient record and the clinic toggle.
-
-        Cascade (see ADR 0006):
-
-        1. Clinic opt-out (``budget_public_auth_disabled=true``) → ``none``.
-        2. Patient phone has ≥4 digits → ``phone_last4``.
-        3. Patient has ``date_of_birth`` → ``dob``.
-        4. Otherwise → ``manual_code`` (caller must call
-           ``set_public_code`` before sending the budget).
-        """
-        settings = (
-            clinic_settings
-            if clinic_settings is not None
-            else (await _resolve_clinic_settings(db, clinic_id))
-        )
-        if settings.get("budget_public_auth_disabled"):
-            return "none"
-
-        # Patient lookup via ORM — patients is in budget.depends.
-        from app.modules.patients.models import Patient
-
-        patient = await db.get(Patient, patient_id)
-        if patient is None:
-            return "manual_code"
-        digits = "".join(ch for ch in (patient.phone or "") if ch.isdigit())
-        if len(digits) >= 4:
-            return "phone_last4"
-        if patient.date_of_birth is not None:
-            return "dob"
-        return "manual_code"
-
-    @staticmethod
-    async def verify_public_access(
-        db: AsyncSession,
-        budget: Budget,
-        method: str,
-        value: str,
-        ip_hash: str,
-    ) -> tuple[bool, str | None]:
-        """Validate a verification attempt for the public link.
-
-        Returns ``(ok, error_code)``. Error codes:
-
-        - ``locked``  — token is permanently locked (``public_locked_at`` set).
-        - ``expired`` — budget past ``valid_until``.
-        - ``rate_limited`` — too many attempts in the rolling window.
-        - ``method_mismatch`` — caller used the wrong method.
-        - ``invalid`` — wrong value.
-
-        On the 10th total failed attempt the function sets
-        ``public_locked_at`` and returns ``(False, "locked")``.
-        """
-        if budget.public_locked_at is not None:
-            return False, "locked"
-        if budget.valid_until is not None and budget.valid_until < datetime.now(UTC).date():
-            return False, "expired"
-        if method != budget.public_auth_method:
-            return False, "method_mismatch"
-
-        # Rate limit: failures in the rolling window.
-        now = datetime.now(UTC)
-        window_start = now - PUBLIC_AUTH_FAIL_WINDOW
-        recent_fail_count = (
-            await db.execute(
-                select(func.count(BudgetAccessLog.id)).where(
-                    BudgetAccessLog.budget_id == budget.id,
-                    BudgetAccessLog.attempted_at >= window_start,
-                    BudgetAccessLog.success.is_(False),
-                )
-            )
-        ).scalar() or 0
-        if recent_fail_count >= PUBLIC_AUTH_FAIL_LIMIT_WINDOW:
-            return False, "rate_limited"
-
-        ok = await BudgetWorkflowService._compare_method_value(db, budget, method, value)
-
-        # Log the attempt regardless of outcome.
-        db.add(
-            BudgetAccessLog(
-                budget_id=budget.id,
-                ip_hash=ip_hash,
-                success=ok,
-                method_attempted=method,
-            )
-        )
-        await db.flush()
-
-        if not ok:
-            total_fail_count = (
-                await db.execute(
-                    select(func.count(BudgetAccessLog.id)).where(
-                        BudgetAccessLog.budget_id == budget.id,
-                        BudgetAccessLog.success.is_(False),
-                    )
-                )
-            ).scalar() or 0
-            if total_fail_count >= PUBLIC_AUTH_TOTAL_FAIL_LOCKOUT:
-                budget.public_locked_at = now
-                await db.flush()
-                return False, "locked"
-            return False, "invalid"
-        return True, None
-
-    @staticmethod
-    async def _compare_method_value(
-        db: AsyncSession,
-        budget: Budget,
-        method: str,
-        value: str,
-    ) -> bool:
-        """Constant-time-ish comparison of the verification value
-        against the patient record / hashed code.
-        """
-        if method == "none":
-            return True
-        if method == "manual_code":
-            return _verify_password(value, budget.public_auth_secret_hash or "")
-
-        from app.modules.patients.models import Patient
-
-        patient = await db.get(Patient, budget.patient_id)
-        if patient is None:
-            return False
-        if method == "phone_last4":
-            digits = "".join(ch for ch in (patient.phone or "") if ch.isdigit())
-            if len(digits) < 4:
-                return False
-            value_digits = "".join(ch for ch in value if ch.isdigit())
-            return secrets.compare_digest(digits[-4:], value_digits)
-        if method == "dob":
-            if patient.date_of_birth is None:
-                return False
-            return secrets.compare_digest(patient.date_of_birth.isoformat(), value.strip())
-        return False
-
-    @staticmethod
     async def clone_to_new_draft(
         db: AsyncSession,
         budget: Budget,
@@ -790,8 +527,7 @@ class BudgetWorkflowService:
         draft (version+1). Used by reception to "Resend" a budget.
 
         The new draft inherits the line items, valid window and plan
-        snapshots; it gets a fresh ``public_token`` and re-resolves the
-        ``public_auth_method`` against the current Patient record.
+        snapshots.
         """
         from .service import BudgetItemService, BudgetService
 
@@ -810,13 +546,27 @@ class BudgetWorkflowService:
             global_discount_value=budget.global_discount_value,
             plan_number_snapshot=budget.plan_number_snapshot,
             plan_status_snapshot=budget.plan_status_snapshot,
-        )
-        # Resolve public auth method against current patient record.
-        new_budget.public_auth_method = await BudgetWorkflowService.resolve_public_auth_method(
-            db, budget.clinic_id, budget.patient_id
+            is_manual_total=budget.is_manual_total,
         )
         db.add(new_budget)
         await db.flush()
+
+        if budget.is_manual_total:
+            new_budget.total = budget.total
+            new_budget.subtotal = budget.total
+
+            await BudgetHistoryService.add_entry(
+                db,
+                clinic_id=budget.clinic_id,
+                budget_id=new_budget.id,
+                action="created",
+                changed_by=cloned_by,
+                previous_state={"parent_budget_id": str(budget.id)},
+                new_state={"status": "draft", "version": new_budget.version},
+                notes="Cloned from budget for resend",
+            )
+            await db.flush()
+            return new_budget
 
         # Clone items (snapshot of catalog/treatment refs).
         for item in budget.items:

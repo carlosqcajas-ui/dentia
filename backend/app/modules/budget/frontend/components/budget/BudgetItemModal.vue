@@ -18,10 +18,15 @@ const { addItem } = useBudgets()
 
 // Selection state
 const selectedItem = ref<TreatmentCatalogItem | null>(null)
+// Custom (no-catalog) mode: free-text description + manual price, for
+// clinics that quote case-by-case instead of from a fixed price list.
+const isCustomItem = ref(false)
 
 // Item form
-const form = reactive<BudgetItemCreate>({
+const form = reactive<BudgetItemCreate & { unit_price?: number }>({
   catalog_item_id: '',
+  description: '',
+  unit_price: undefined,
   quantity: 1,
   tooth_number: undefined,
   surfaces: [],
@@ -36,6 +41,21 @@ function handleItemSelect(item: TreatmentCatalogItem | null) {
   selectedItem.value = item
   form.catalog_item_id = item?.id || ''
 }
+
+function toggleCustomItem() {
+  isCustomItem.value = !isCustomItem.value
+  selectedItem.value = null
+  form.catalog_item_id = ''
+  form.description = ''
+  form.unit_price = undefined
+}
+
+const canSubmit = computed(() => {
+  if (isCustomItem.value) {
+    return Boolean(form.description?.trim()) && Number(form.unit_price) > 0
+  }
+  return Boolean(form.catalog_item_id)
+})
 
 // Tooth surfaces
 const toothSurfaces = ['M', 'O', 'D', 'V', 'L', 'P', 'I']
@@ -52,9 +72,11 @@ function toggleSurface(surface: string) {
 
 // Calculate preview total
 const previewTotal = computed(() => {
-  if (!selectedItem.value) return 0
+  const price = isCustomItem.value
+    ? Number(form.unit_price) || 0
+    : selectedItem.value?.default_price || 0
+  if (!price) return 0
 
-  const price = selectedItem.value.default_price || 0
   const subtotal = price * (form.quantity || 1)
 
   if (!form.discount_type || !form.discount_value) {
@@ -70,13 +92,15 @@ const previewTotal = computed(() => {
 
 // Submit
 async function handleSubmit() {
-  if (!form.catalog_item_id) return
+  if (!canSubmit.value) return
 
   isSubmitting.value = true
 
   try {
     await addItem(props.budgetId, {
-      catalog_item_id: form.catalog_item_id,
+      catalog_item_id: isCustomItem.value ? undefined : form.catalog_item_id,
+      description: isCustomItem.value ? form.description?.trim() : undefined,
+      unit_price: isCustomItem.value ? Number(form.unit_price) : undefined,
       quantity: form.quantity,
       tooth_number: form.tooth_number || undefined,
       surfaces: form.surfaces?.length ? form.surfaces : undefined,
@@ -111,7 +135,10 @@ function close() {
 
 function resetForm() {
   selectedItem.value = null
+  isCustomItem.value = false
   form.catalog_item_id = ''
+  form.description = ''
+  form.unit_price = undefined
   form.quantity = 1
   form.tooth_number = undefined
   form.surfaces = []
@@ -153,16 +180,40 @@ watch(() => props.open, (isOpen) => {
           class="space-y-4"
           @submit.prevent="handleSubmit"
         >
-          <!-- Catalog item search -->
+          <!-- Catalog item search / custom item toggle -->
           <UFormField
             :label="t('budget.items.treatment')"
             required
           >
             <TreatmentVisualSelector
+              v-if="!isCustomItem"
               :model-value="selectedItem"
               :in-modal="true"
               @update:model-value="handleItemSelect"
             />
+            <div
+              v-else
+              class="space-y-3"
+            >
+              <UInput
+                v-model="form.description"
+                :placeholder="t('budget.items.customDescriptionPlaceholder')"
+              />
+              <UInput
+                v-model.number="form.unit_price"
+                type="number"
+                step="0.01"
+                min="0"
+                :placeholder="t('budget.items.customPricePlaceholder')"
+              />
+            </div>
+            <button
+              type="button"
+              class="text-xs text-muted hover:underline mt-2"
+              @click="toggleCustomItem"
+            >
+              {{ isCustomItem ? t('budget.items.useCatalog') : t('budget.items.useCustom') }}
+            </button>
           </UFormField>
 
           <!-- Quantity -->
@@ -244,7 +295,7 @@ watch(() => props.open, (isOpen) => {
 
           <!-- Preview total -->
           <div
-            v-if="selectedItem"
+            v-if="selectedItem || (isCustomItem && form.unit_price)"
             class="flex justify-between items-center p-3 bg-surface-muted rounded-lg"
           >
             <span class="text-muted">{{ t('budget.items.lineTotal') }}</span>
@@ -266,7 +317,7 @@ watch(() => props.open, (isOpen) => {
             <UButton
               color="primary"
               icon="i-lucide-plus"
-              :disabled="!form.catalog_item_id"
+              :disabled="!canSubmit"
               :loading="isSubmitting"
               @click="handleSubmit"
             >

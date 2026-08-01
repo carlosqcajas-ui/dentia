@@ -49,7 +49,7 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: 'DentalPin',
+      title: 'SmileDesign',
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' }
       ]
@@ -75,7 +75,7 @@ export default defineNuxtConfig({
       demoMode: process.env.NUXT_PUBLIC_DEMO_MODE === 'true',
       // Documentation portal origin used by the in-app help drawer
       // (Fase 5 of issue #75). Empty disables the help button.
-      docsUrl: process.env.NUXT_PUBLIC_DOCS_URL || 'https://docs.dentalpin.com'
+      docsUrl: process.env.NUXT_PUBLIC_DOCS_URL || 'https://docs.dentia.com'
     }
   },
   srcDir: 'app',
@@ -112,13 +112,15 @@ export default defineNuxtConfig({
     }
   },
 
+  // Locked to Spanish — this deployment is single-market (La Paz,
+  // Bolivia). en.json/fr.json still exist (module authors keep
+  // shipping them for the upstream OSS project) but aren't loaded
+  // here, so there is nothing to switch to.
   i18n: {
     locales: [
-      { code: 'en', name: 'English', file: 'en.json' },
-      { code: 'es', name: 'Español', file: 'es.json' },
-      { code: 'fr', name: 'Français', file: 'fr.json' }
+      { code: 'es', name: 'Español', file: 'es.json' }
     ],
-    defaultLocale: 'en',
+    defaultLocale: 'es',
     lazy: true,
     langDir: 'locales',
     strategy: 'no_prefix',

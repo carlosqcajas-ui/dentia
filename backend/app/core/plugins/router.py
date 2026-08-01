@@ -25,6 +25,7 @@ from app.core.auth.dependencies import (
     require_permission,
 )
 from app.core.auth.permissions import has_permission
+from app.core.auth.router import verify_operator_key
 from app.core.schemas import ApiResponse
 from app.database import get_db
 
@@ -248,3 +249,69 @@ async def _graceful_exit() -> None:
         # Fallback: signal self. Works in prod where we are PID 1.
         logger.warning("No permission to signal PID 1; signalling self instead")
         os.kill(os.getpid(), signal.SIGTERM)
+
+
+# --- Operator endpoints ---------------------------------------------------
+#
+# Module install state is system-wide (``core_module`` has no clinic_id —
+# there is one shared set of active modules per deployment, not per
+# clinic). These mirror the endpoints above but are gated by
+# ``X-Operator-Key`` instead of a logged-in clinic admin, so the operator
+# backoffice (``/operator``) can manage modules without holding a normal
+# session. Clinic admins keep their own access via Settings → Modules —
+# this is an additional door, not a replacement.
+
+
+@router.get("/-/operator")
+async def operator_list_modules(
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[None, Depends(verify_operator_key)],
+) -> ApiResponse[list[dict[str, Any]]]:
+    svc = ModuleService(db)
+    infos = await svc.list_modules()
+    return ApiResponse(data=[info.to_dict() for info in infos])
+
+
+@router.post("/-/operator/{name}/install", status_code=status.HTTP_202_ACCEPTED)
+async def operator_install_module(
+    name: str,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[None, Depends(verify_operator_key)],
+    force: bool = False,
+) -> ApiResponse[dict[str, Any]]:
+    svc = ModuleService(db)
+    try:
+        scheduled = await svc.install(name, force=force)
+    except ModuleOperationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ApiResponse(
+        data={"scheduled": scheduled, "requires_restart": bool(scheduled)},
+        message="Restart required to apply.",
+    )
+
+
+@router.post("/-/operator/{name}/uninstall", status_code=status.HTTP_202_ACCEPTED)
+async def operator_uninstall_module(
+    name: str,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    _: Annotated[None, Depends(verify_operator_key)],
+    force: bool = False,
+) -> ApiResponse[dict[str, Any]]:
+    svc = ModuleService(db)
+    try:
+        await svc.uninstall(name, force=force)
+    except ModuleOperationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ApiResponse(
+        data={"scheduled": [name], "requires_restart": True},
+        message="Restart required to apply. A data backup will be created before removal.",
+    )
+
+
+@router.post("/-/operator/restart", status_code=status.HTTP_202_ACCEPTED)
+async def operator_restart_backend(
+    background_tasks: BackgroundTasks,
+    _: Annotated[None, Depends(verify_operator_key)],
+) -> ApiResponse[dict[str, Any]]:
+    background_tasks.add_task(_graceful_exit)
+    return ApiResponse(data={"pid": os.getpid()}, message="Restart scheduled.")

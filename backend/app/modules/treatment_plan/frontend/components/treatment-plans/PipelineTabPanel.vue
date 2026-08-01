@@ -184,7 +184,7 @@ function whatsappPatient(row: PipelineRow) {
                 v-if="row.budget.total !== null"
                 class="ml-2"
               >
-                {{ row.budget.total.toFixed(2) }} €
+                {{ row.budget.total.toFixed(2) }} Bs
               </span>
             </div>
             <div

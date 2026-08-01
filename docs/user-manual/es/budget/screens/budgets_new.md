@@ -28,13 +28,14 @@ related_endpoints:
   - POST /api/v1/budget/budgets/{budget_id}/unlock-public
   - PUT /api/v1/budget/budgets/{budget_id}
   - PUT /api/v1/budget/budgets/{budget_id}/items/{item_id}
+  - PUT /api/v1/budget/budgets/{budget_id}/total
 related_permissions:
   - budget.read
   - budget.write
 related_paths:
   - backend/app/modules/budget/frontend/pages/budgets/new.vue
   - backend/app/modules/budget/router.py
-last_verified_commit: b1b82f5
+last_verified_commit: b79f849
 ---
 
 # Nuevo presupuesto
@@ -61,23 +62,39 @@ estado `draft` y el flujo continúa desde el
 - **Snapshot de precios.** Cada línea guarda el precio del catálogo
   vigente al crear el presupuesto. Cambiar el catálogo después no
   afecta a presupuestos existentes.
+- **Dos tipos de presupuesto.** "Con desglose" (por defecto) itemiza
+  tratamiento por tratamiento. "Monto libre" es un total único sin
+  ítems, pensado para clínicas que no facturan por tratamiento — el
+  total se puede editar en cualquier momento después de creado,
+  incluso ya enviado o firmado (ver [detalle](./budgets_id.md)).
 
-## Crear un presupuesto
+## Crear un presupuesto con desglose
 
 > Requiere `budget.write`.
 
 1. Si no vienes de la ficha del paciente, selecciona el paciente en
    la cabecera.
-2. Añade ítems desde el catálogo. Por cada línea puedes elegir:
+2. Deja seleccionado "Con desglose de tratamientos".
+3. Añade ítems desde el catálogo. Por cada línea puedes elegir:
    - Diente y superficies (notación FDI).
    - Cantidad, precio unitario (precargado del catálogo),
      descuento por línea (porcentaje o absoluto).
    - Tipo de IVA (precargado del catálogo).
-3. Aplica un descuento global si procede.
-4. Revisa los totales en el panel lateral.
-5. **Guardar**. El presupuesto se crea en `draft` y te lleva al
+4. Aplica un descuento global si procede.
+5. Revisa los totales en el panel lateral.
+6. **Guardar**. El presupuesto se crea en `draft` y te lleva al
    [detalle](./budgets_id.md) para enviarlo, firmarlo o
    facturarlo más tarde.
+
+## Crear un presupuesto de monto libre
+
+> Requiere `budget.write`.
+
+1. Selecciona el paciente.
+2. Elige "Monto libre".
+3. Escribe el total.
+4. **Crear presupuesto**. Te lleva directo al
+   [detalle](./budgets_id.md) — no hay paso de añadir ítems.
 
 ## Crear desde un plan de tratamiento
 

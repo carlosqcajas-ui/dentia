@@ -35,8 +35,8 @@ async def _setup_clinic(db: AsyncSession, auth_headers: dict, client: AsyncClien
         id=uuid4(),
         name="MS Clinic",
         tax_id="A28000777",
-        timezone="Europe/Madrid",
-        currency="EUR",
+        timezone="America/La_Paz",
+        currency="BOB",
         settings={},
     )
     db.add(clinic)

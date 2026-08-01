@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- perf: drop the redundant page-level `auth` middleware from
+  `pages/accounting-export.vue` — the global `auth.global.ts`
+  middleware already runs `auth.init()` on every navigation.
+
 - i18n: add French locale (`fr.json`) with full UI coverage.
 
 - Initial release. Optional, removable, model-free module that exports

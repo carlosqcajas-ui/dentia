@@ -37,7 +37,7 @@ const { t } = useI18n()
             <div v-if="planNumber"><strong>{{ planNumber }}</strong></div>
             <div v-if="itemCount !== undefined">{{ t('treatmentPlans.itemCount', { count: itemCount }, itemCount) }}</div>
             <div v-if="totalEstimated !== null && totalEstimated !== undefined">
-              {{ totalEstimated.toFixed(2) }} €
+              {{ totalEstimated.toFixed(2) }} Bs
             </div>
           </div>
         </div>

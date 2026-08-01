@@ -1,8 +1,8 @@
 {
-  "name": "dentalpin-docs-portal",
+  "name": "dentia-docs-portal",
   "version": "0.1.0",
   "private": true,
-  "description": "VitePress portal for the DentalPin documentation under /docs.",
+  "description": "VitePress portal for the Dentia documentation under /docs.",
   "type": "module",
   "scripts": {
     "dev": "vitepress dev",

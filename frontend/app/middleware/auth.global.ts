@@ -25,9 +25,9 @@ async function isSystemInitialized(): Promise<boolean> {
 export default defineNuxtRouteMiddleware(async (to) => {
   const auth = useAuth()
 
-  // ``/p/budget/<token>`` is the patient-facing budget view (ADR 0006),
-  // authorized server-side via a token-scoped 2FA cookie; let it render.
-  const publicRoutes = ['/login', SETUP_PATH, '/p/budget']
+  // ``/operator`` is the manual clinic-provisioning tool, gated server-side
+  // by the ``X-Operator-Key`` header instead of a logged-in session.
+  const publicRoutes = ['/login', SETUP_PATH, '/operator']
   const isPublicRoute = publicRoutes.some(route => to.path === route || to.path.startsWith(route + '/'))
 
   // Initialize auth state (fetch user if token exists) - works on server and client

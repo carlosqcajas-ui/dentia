@@ -155,14 +155,8 @@ const DEFAULT_CATEGORIES: readonly SettingsCategory[] = [
     icon: 'i-lucide-plug',
     order: 70
   },
-  {
-    id: 'modules',
-    labelKey: 'settings.categories.modules.label',
-    descriptionKey: 'settings.categories.modules.description',
-    icon: 'i-lucide-blocks',
-    order: 80,
-    permission: 'admin.clinic.read'
-  },
+  // 'modules' category intentionally removed — module install/uninstall
+  // is managed exclusively from the operator backoffice (/operator).
   {
     id: 'account',
     labelKey: 'settings.categories.account.label',

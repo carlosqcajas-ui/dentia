@@ -36,7 +36,7 @@ export function useCopilotFormat() {
     return new Intl.DateTimeFormat(locale.value, { hour: '2-digit', minute: '2-digit' }).format(d)
   }
 
-  function money(value: number, currency = 'EUR'): string {
+  function money(value: number, currency = 'BOB'): string {
     return new Intl.NumberFormat(locale.value, { style: 'currency', currency }).format(value)
   }
 

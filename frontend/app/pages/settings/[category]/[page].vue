@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { SettingsCategoryId } from '~/composables/useSettingsRegistry'
 
-definePageMeta({ middleware: 'auth' })
-
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()

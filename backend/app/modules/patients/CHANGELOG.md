@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- fix(regionalize): default `PatientAddress.country` and
+  `BillingAddress.country` to `BO` instead of the leftover Spain
+  default (`ES`) — backend schemas (`schemas.py`) and
+  `PatientSectionEditModal.vue`'s reactive form state. This deployment
+  is Bolivia-only.
+
 - i18n: replace hardcoded strings in patient components with `$t()`
   calls; add French patient names/contacts to demo seed data.
 

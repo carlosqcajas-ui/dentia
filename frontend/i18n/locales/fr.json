@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "DentalPin",
+    "name": "SmileDesign",
     "tagline": "Gestion de clinique dentaire"
   },
   "demo": {
@@ -63,7 +63,7 @@
     "next": "Suivant",
     "back": "Retour",
     "submit": "Créer et démarrer",
-    "success": "Tout est prêt ! Bienvenue sur DentalPin",
+    "success": "Tout est prêt ! Bienvenue sur SmileDesign",
     "firstNameRequired": "Saisissez le prénom",
     "lastNameRequired": "Saisissez le nom",
     "emailRequired": "Saisissez l'email",
@@ -602,6 +602,10 @@
     },
     "planning": "Planification",
     "diagnosisMode": "Diagnostic",
+    "treatmentBar": {
+      "price": "Prix",
+      "pricePlaceholder": "Prix pour ce cas"
+    },
     "treatmentList": {
       "title": "Liste des traitements",
       "noTreatments": "Aucun traitement enregistré"
@@ -890,7 +894,7 @@
       "afternoon": "Bon après-midi",
       "evening": "Bonsoir"
     },
-    "welcome": "Bienvenue sur DentalPin",
+    "welcome": "Bienvenue sur SmileDesign",
     "welcomeMessage": "Commencez par créer votre premier patient.",
     "quickActions": {
       "newAppointment": "Nouveau rendez-vous",
@@ -1064,6 +1068,16 @@
     "userActive": "Utilisateur actif",
     "userInactiveNote": "(Ne peut pas se connecter)",
     "saveChanges": "Enregistrer les modifications",
+    "password": "Mot de passe",
+    "passwordDescription": "Modifiez-le à tout moment, par exemple après avoir utilisé un mot de passe temporaire.",
+    "changePassword": "Changer le mot de passe",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "passwordTooShort": "Le nouveau mot de passe doit contenir au moins 8 caractères",
+    "passwordMismatch": "Les mots de passe ne correspondent pas",
+    "passwordChanged": "Mot de passe mis à jour",
+    "passwordCurrentWrong": "Le mot de passe actuel est incorrect",
     "noCabinets": "Aucun cabinet configuré",
     "addCabinet": "Ajouter",
     "newCabinet": "Nouveau cabinet",
@@ -1443,7 +1457,7 @@
       "labelPlaceholder": "ex. Empreintes",
       "price": "Montant",
       "add": "Ajouter une séance",
-      "sumStatus": "Somme {sum} € · Total {total} €"
+      "sumStatus": "Somme {sum} Bs · Total {total} Bs"
     },
     "categoryCreated": "Catégorie créée",
     "categoryUpdated": "Catégorie mise à jour",
@@ -1803,6 +1817,15 @@
     "validUntilHint": "Laissez vide pour un devis sans date d'expiration",
     "noExpiry": "Aucune date d'expiration",
     "createAndAddItems": "Créer et ajouter les traitements",
+    "createManual": "Créer le devis",
+    "totalMode": {
+      "label": "Type de devis",
+      "itemized": "Détaillé",
+      "manual": "Montant libre",
+      "itemizedHint": "Ajoutez les traitements un par un, le total se calcule automatiquement.",
+      "manualHint": "Saisissez le total à la main, sans détail des traitements. Modifiable à tout moment, même après envoi ou signature."
+    },
+    "totalUpdatedAfterSigning": "Total modifié après la signature",
     "subtotal": "Sous-total",
     "totalDiscount": "Remise totale",
     "totalTax": "TVA totale",
@@ -1875,7 +1898,11 @@
       "toothNumberPlaceholder": "Ex. : 11, 21, 36...",
       "surfaces": "Surfaces",
       "notes": "Notes",
-      "notesPlaceholder": "Notes sur ce traitement..."
+      "notesPlaceholder": "Notes sur ce traitement...",
+      "useCustom": "Je préfère saisir un traitement et un prix personnalisés",
+      "useCatalog": "Choisir dans le catalogue à la place",
+      "customDescriptionPlaceholder": "Description du traitement",
+      "customPricePlaceholder": "Prix"
     },
     "signature": {
       "title": "Signature numérique",
@@ -1899,6 +1926,7 @@
       "patient": "Patient",
       "guardian": "Tuteur légal",
       "representative": "Représentant",
+      "otherSigner": "Un tuteur ou représentant signe à la place du patient",
       "accept": "J'accepte les termes du devis",
       "signHere": "Signez ici",
       "clear": "Effacer la signature"

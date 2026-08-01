@@ -3,15 +3,15 @@
     "/module_layers/patients/frontend",
     "/module_layers/catalog/frontend",
     "/module_layers/odontogram/frontend",
-    "/module_layers/agenda/frontend",
     "/module_layers/budget/frontend",
     "/module_layers/payments/frontend",
     "/module_layers/billing/frontend",
-    "/module_layers/copilot/frontend",
+    "/module_layers/agenda/frontend",
     "/module_layers/media/frontend",
-    "/module_layers/patients_clinical/frontend",
     "/module_layers/treatment_plan/frontend",
     "/module_layers/clinical_notes/frontend",
+    "/module_layers/copilot/frontend",
+    "/module_layers/patients_clinical/frontend",
     "/module_layers/schedules/frontend",
     "/module_layers/recalls/frontend",
     "/module_layers/notifications/frontend",
@@ -32,10 +32,6 @@
       "path": "/module_layers/odontogram/frontend"
     },
     {
-      "name": "agenda",
-      "path": "/module_layers/agenda/frontend"
-    },
-    {
       "name": "budget",
       "path": "/module_layers/budget/frontend"
     },
@@ -48,16 +44,12 @@
       "path": "/module_layers/billing/frontend"
     },
     {
-      "name": "copilot",
-      "path": "/module_layers/copilot/frontend"
+      "name": "agenda",
+      "path": "/module_layers/agenda/frontend"
     },
     {
       "name": "media",
       "path": "/module_layers/media/frontend"
-    },
-    {
-      "name": "patients_clinical",
-      "path": "/module_layers/patients_clinical/frontend"
     },
     {
       "name": "treatment_plan",
@@ -66,6 +58,14 @@
     {
       "name": "clinical_notes",
       "path": "/module_layers/clinical_notes/frontend"
+    },
+    {
+      "name": "copilot",
+      "path": "/module_layers/copilot/frontend"
+    },
+    {
+      "name": "patients_clinical",
+      "path": "/module_layers/patients_clinical/frontend"
     },
     {
       "name": "schedules",

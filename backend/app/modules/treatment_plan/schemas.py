@@ -134,8 +134,6 @@ class PipelineBudgetBrief(BaseModel):
     status: str
     total: float | None = None
     valid_until: date | None = None
-    last_reminder_sent_at: datetime | None = None
-    viewed_at: datetime | None = None
 
 
 class PipelineNextAppointment(BaseModel):

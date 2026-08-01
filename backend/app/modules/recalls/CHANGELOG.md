@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- perf: drop the redundant page-level `auth` middleware from
+  `pages/recalls/index.vue` — the global `auth.global.ts` middleware
+  already runs `auth.init()` on every navigation, so the page-level
+  copy was a duplicate no-op call on each visit to this route.
+
 - i18n: correct French wording in seed note (Contrôle mensuel).
 
 - i18n: add French translations to seed data; fix `t()` dict pattern.

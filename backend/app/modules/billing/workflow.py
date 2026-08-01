@@ -134,20 +134,14 @@ class InvoiceWorkflowService:
 
         # Validate billing data completeness.
         #
-        # ``billing_tax_id`` is required by default for plain invoicing, but
-        # delegated to the country compliance hook when one is registered
-        # for the clinic — Spanish Verifactu, for example, accepts F2
-        # simplified invoices without recipient NIF up to 400 €. The hook
-        # already ran ``validate_before_issue`` upstream, so when a hook
-        # is in charge we trust its decision and skip the strict default.
+        # ``billing_tax_id`` is only mandatory when a country compliance
+        # hook requires it (e.g. Spanish Verifactu). Plain invoicing —
+        # this deployment's default, used for internal accounting control
+        # rather than government-audited fiscal documents — only needs a
+        # billing name; patients without a NIT can still be invoiced.
         billing_errors = []
         if not invoice.billing_name:
             billing_errors.append("billing_name is required")
-        if not invoice.billing_tax_id:
-            clinic = invoice.clinic
-            hook = BillingHookRegistry.get_for_clinic(clinic) if clinic else None
-            if hook is None:
-                billing_errors.append("billing_tax_id is required (update patient billing info)")
         if billing_errors:
             raise InvoiceWorkflowError(
                 f"Cannot issue invoice: incomplete billing data. {', '.join(billing_errors)}"

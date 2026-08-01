@@ -5,7 +5,7 @@ from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # ============================================================================
 # Budget Status Types (Simplified)
@@ -95,12 +95,18 @@ class TreatmentPlanBrief(BaseModel):
 
 
 class BudgetItemCreate(BaseModel):
-    """Schema for creating a budget item."""
+    """Schema for creating a budget item.
 
-    catalog_item_id: UUID
+    ``catalog_item_id`` is optional — for clinics that price case-by-case,
+    omit it and provide ``description`` + ``unit_price`` instead.
+    """
+
+    catalog_item_id: UUID | None = None
+    description: str | None = Field(default=None, max_length=300)
     quantity: int = Field(default=1, ge=1)
 
-    # Optional overrides (if not provided, uses catalog defaults)
+    # Optional overrides (if not provided, uses catalog defaults). Required
+    # when catalog_item_id is not set.
     unit_price: Decimal | None = Field(default=None, ge=0)
 
     # Line discount
@@ -143,7 +149,8 @@ class BudgetItemResponse(BaseModel):
 
     id: UUID
     budget_id: UUID
-    catalog_item_id: UUID
+    catalog_item_id: UUID | None
+    description: str | None
 
     # Pricing
     unit_price: Decimal
@@ -307,8 +314,20 @@ class BudgetCreate(BaseModel):
     internal_notes: str | None = None
     patient_notes: str | None = None
 
-    # Items (optional, can be added later)
+    # Items (optional, can be added later). Ignored when
+    # ``is_manual_total`` is set — a manual-total budget has no items.
     items: list[BudgetItemCreate] = Field(default_factory=list)
+
+    # Manual-total mode — no line-item breakdown, staff enters the
+    # total directly. Requires ``total``.
+    is_manual_total: bool = False
+    total: Decimal | None = Field(default=None, ge=0)
+
+    @model_validator(mode="after")
+    def _validate_manual_total(self) -> "BudgetCreate":
+        if self.is_manual_total and self.total is None:
+            raise ValueError("total is required when is_manual_total is set")
+        return self
 
 
 class BudgetUpdate(BaseModel):
@@ -362,6 +381,7 @@ class BudgetResponse(BaseModel):
     total_discount: Decimal
     total_tax: Decimal
     total: Decimal
+    is_manual_total: bool
 
     # Notes
     internal_notes: str | None
@@ -369,11 +389,6 @@ class BudgetResponse(BaseModel):
 
     # Insurance
     insurance_estimate: Decimal | None
-
-    # Public-link token (ADR 0006). Generated at creation time; the
-    # patient-facing URL is rendered client-side as
-    # ``${origin}/p/budget/${public_token}``.
-    public_token: UUID | None = None
 
     # Timestamps
     created_at: datetime
@@ -420,6 +435,15 @@ class BudgetListResponse(BaseModel):
 # ============================================================================
 # Workflow Schemas
 # ============================================================================
+
+
+class BudgetTotalUpdate(BaseModel):
+    """Schema for manually setting the total on an ``is_manual_total`` budget.
+
+    Allowed in any status — unlike ``BudgetUpdate``, which is draft-only.
+    """
+
+    total: Decimal = Field(ge=0)
 
 
 class BudgetSendRequest(BaseModel):

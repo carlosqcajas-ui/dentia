@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ClinicAddress, ClinicUpdate } from '~/types'
-import { SUPPORTED_CURRENCIES } from '~/constants/currencies'
 import { PERMISSIONS } from '~/config/permissions'
 
 const { t } = useI18n()
@@ -66,35 +65,11 @@ function translateCountry(value: string | undefined | null): string {
   return value
 }
 
-const currencyOptions = computed(() => {
-  let displayNames: Intl.DisplayNames | null = null
-  try {
-    displayNames = new Intl.DisplayNames([currentLocale.value], { type: 'currency' })
-  } catch {
-    displayNames = null
-  }
-  const collator = new Intl.Collator(currentLocale.value, { sensitivity: 'base' })
-  return SUPPORTED_CURRENCIES.map(code => ({
-    value: code,
-    label: displayNames?.of(code) ? `${code} — ${displayNames.of(code)}` : code
-  })).sort((a, b) => collator.compare(a.label, b.label))
-})
-
+// Single-market deployment (La Paz, Bolivia) — currency is fixed to
+// BOB, not user-editable. Timezone stays a select in case other
+// Bolivian departments ever need a different one, but defaults here.
 const timezoneOptions = [
-  { label: 'Europe/Madrid', value: 'Europe/Madrid' },
-  { label: 'Europe/London', value: 'Europe/London' },
-  { label: 'Europe/Paris', value: 'Europe/Paris' },
-  { label: 'Europe/Berlin', value: 'Europe/Berlin' },
-  { label: 'Europe/Lisbon', value: 'Europe/Lisbon' },
-  { label: 'Europe/Rome', value: 'Europe/Rome' },
-  { label: 'Atlantic/Canary', value: 'Atlantic/Canary' },
-  { label: 'America/New_York', value: 'America/New_York' },
-  { label: 'America/Chicago', value: 'America/Chicago' },
-  { label: 'America/Denver', value: 'America/Denver' },
-  { label: 'America/Los_Angeles', value: 'America/Los_Angeles' },
-  { label: 'America/Mexico_City', value: 'America/Mexico_City' },
-  { label: 'America/Buenos_Aires', value: 'America/Buenos_Aires' },
-  { label: 'America/Sao_Paulo', value: 'America/Sao_Paulo' },
+  { label: 'America/La_Paz', value: 'America/La_Paz' },
   { label: 'UTC', value: 'UTC' }
 ]
 
@@ -110,8 +85,8 @@ const form = ref({
   country: '',
   phone: '',
   email: '',
-  timezone: 'Europe/Madrid',
-  currency: 'EUR'
+  timezone: 'America/La_Paz',
+  currency: 'BOB'
 })
 
 function loadForm() {
@@ -123,11 +98,11 @@ function loadForm() {
     street: c?.address?.street || '',
     city: c?.address?.city || '',
     postal_code: c?.address?.postal_code || '',
-    country: c?.address?.country || '',
+    country: c?.address?.country || 'BO',
     phone: c?.phone || '',
     email: c?.email || '',
-    timezone: c?.timezone || 'Europe/Madrid',
-    currency: c?.currency || 'EUR'
+    timezone: c?.timezone || 'America/La_Paz',
+    currency: 'BOB'
   }
 }
 
@@ -323,13 +298,12 @@ function formatAddress(address?: Record<string, string>): string {
         </UFormField>
         <UFormField
           :label="t('settings.currency')"
-          :help="t('settings.currencyHelp')"
+          :help="t('settings.currencyFixedHelp')"
         >
-          <USelect
-            v-model="form.currency"
-            :items="currencyOptions"
-            value-key="value"
-            label-key="label"
+          <UInput
+            model-value="BOB — Boliviano"
+            disabled
+            class="w-full"
           />
         </UFormField>
       </div>

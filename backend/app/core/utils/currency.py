@@ -14,7 +14,7 @@ from babel.numbers import format_currency as _babel_format_currency
 def format_currency(
     amount: Decimal | float | int,
     currency: str,
-    locale: str = "es_ES",
+    locale: str = "es_BO",
 ) -> str:
     """Render ``amount`` as a localized currency string.
 

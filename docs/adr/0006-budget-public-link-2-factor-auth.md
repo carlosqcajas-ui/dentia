@@ -1,6 +1,8 @@
 # 0006 — Budget public link two-factor authentication
 
-- **Status:** accepted
+- **Status:** superseded by 0019 (2026-08-01) — the patient-facing
+  public link was removed entirely; see
+  `docs/adr/0019-remove-budget-patient-self-service.md`.
 - **Date:** 2026-04-28
 - **Deciders:** Ramon Martinez
 - **Tags:** security, privacy, budget, public-api

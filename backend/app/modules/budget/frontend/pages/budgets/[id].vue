@@ -6,7 +6,6 @@ import type { EntityChip } from '~~/app/components/shared/EntityStatusChips.vue'
 import type { EntityAction } from '~~/app/components/shared/EntityActionBar.vue'
 import type { TotalLine } from '~~/app/components/shared/EntityTotalsCard.vue'
 import type { InfoItem } from '~~/app/components/shared/EntityInfoCard.vue'
-import PublicBudgetLinkCard from '../../components/budget/PublicBudgetLinkCard.vue'
 import BudgetSignatureCard from '../../components/budget/BudgetSignatureCard.vue'
 
 const route = useRoute()
@@ -21,6 +20,7 @@ const {
   isLoading,
   fetchBudget,
   updateBudget,
+  setManualTotal,
   removeItem,
   sendBudget,
   acceptBudget,
@@ -28,11 +28,50 @@ const {
   cancelBudget,
   duplicateBudget,
   downloadPDF,
+  fetchSignature,
   canEdit,
   canSend,
   canAccept,
   canCancel
 } = useBudgets()
+
+// Manual-total budgets — signature timestamp used only to flag when
+// the total was edited after the patient already signed (see
+// BudgetService.set_manual_total gotcha: the signed PDF hash is not
+// regenerated on those edits).
+const signedAt = ref<string | null>(null)
+const totalEditedAfterSigning = computed(() => {
+  if (!currentBudget.value || !signedAt.value) return false
+  return new Date(currentBudget.value.updated_at) > new Date(signedAt.value)
+})
+
+const isEditingTotal = ref(false)
+const manualTotalInput = ref<number>(0)
+
+function startEditingTotal() {
+  if (!currentBudget.value) return
+  manualTotalInput.value = currentBudget.value.total
+  isEditingTotal.value = true
+}
+
+async function saveManualTotal() {
+  if (!currentBudget.value) return
+  try {
+    await setManualTotal(currentBudget.value.id, manualTotalInput.value)
+    toast.add({
+      title: t('common.success'),
+      description: t('budget.messages.updated'),
+      color: 'success'
+    })
+    isEditingTotal.value = false
+  } catch {
+    toast.add({
+      title: t('common.error'),
+      description: t('budget.errors.update'),
+      color: 'error'
+    })
+  }
+}
 
 const hasActiveInvoice = ref(false)
 
@@ -86,6 +125,10 @@ async function loadBudget() {
   if (can(PERMISSIONS.billing.read)) {
     await checkActiveInvoice(budget.id)
   }
+  if (budget.is_manual_total) {
+    const signature = await fetchSignature(budget.id)
+    signedAt.value = signature?.signed_at ?? null
+  }
 }
 
 onMounted(() => {
@@ -96,7 +139,6 @@ onMounted(() => {
 const isAddItemModalOpen = ref(false)
 const isSignatureModalOpen = ref(false)
 const isSendModalOpen = ref(false)
-const isShareLinkModalOpen = ref(false)
 const isSignatureViewModalOpen = ref(false)
 const signatureAction = ref<'accept' | 'reject'>('accept')
 
@@ -185,8 +227,15 @@ async function handleRemoveItem(item: BudgetItem) {
 }
 
 // Workflow actions
+const showOtherSigner = ref(false)
+
 function openSignatureModal(action: 'accept' | 'reject') {
   signatureAction.value = action
+  const patient = currentBudget.value?.patient
+  signatureForm.signed_by_name = patient ? `${patient.first_name} ${patient.last_name}`.trim() : ''
+  signatureForm.signed_by_email = patient?.email || ''
+  signatureForm.relationship_to_patient = 'patient'
+  showOtherSigner.value = false
   isSignatureModalOpen.value = true
 }
 
@@ -235,6 +284,7 @@ function resetSignatureForm() {
   signatureForm.signed_by_name = ''
   signatureForm.signed_by_email = ''
   signatureForm.relationship_to_patient = 'patient'
+  showOtherSigner.value = false
 }
 
 async function handleCancel() {
@@ -358,16 +408,6 @@ const primaryActions = computed<EntityAction[]>(() => {
       label: t('budget.actions.send'),
       icon: 'i-lucide-send',
       onClick: () => { isSendModalOpen.value = true }
-    })
-  }
-
-  if (budget.public_token && ['sent', 'accepted', 'rejected', 'expired'].includes(budget.status)) {
-    actions.push({
-      key: 'shareLink',
-      label: t('budget.publicLink.action'),
-      icon: 'i-lucide-share-2',
-      variant: 'soft',
-      onClick: () => { isShareLinkModalOpen.value = true }
     })
   }
 
@@ -508,8 +548,13 @@ const infoItems = computed<InfoItem[]>(() => {
 })
 
 function getItemName(item: BudgetItem): string {
-  if (!item.catalog_item) return '-'
-  return item.catalog_item.names[locale.value] || item.catalog_item.names.es || item.catalog_item.internal_code
+  if (item.catalog_item) {
+    return item.catalog_item.names[locale.value] || item.catalog_item.names.es || item.catalog_item.internal_code
+  }
+  if (item.description) {
+    return t(`odontogram.treatments.types.${item.description}`, item.description)
+  }
+  return '-'
 }
 </script>
 
@@ -686,8 +731,73 @@ function getItemName(item: BudgetItem): string {
             </form>
           </UCard>
 
+          <!-- Manual total (no line items) -->
+          <UCard v-if="currentBudget.is_manual_total">
+            <template #header>
+              <div class="flex items-center justify-between">
+                <h2 class="text-h1 text-default">
+                  {{ t('budget.total') }}
+                </h2>
+                <UButton
+                  v-if="can(PERMISSIONS.budget.write) && !isEditingTotal"
+                  variant="ghost"
+                  color="neutral"
+                  icon="i-lucide-pencil"
+                  size="sm"
+                  @click="startEditingTotal"
+                >
+                  {{ t('common.edit') }}
+                </UButton>
+              </div>
+            </template>
+
+            <div v-if="!isEditingTotal">
+              <p class="text-h1 tabular-nums">
+                {{ formatMoney(currentBudget.total) }}
+              </p>
+              <p
+                v-if="totalEditedAfterSigning"
+                class="text-caption text-warning-accent mt-2 flex items-center gap-1"
+              >
+                <UIcon name="i-lucide-triangle-alert" />
+                {{ t('budget.totalUpdatedAfterSigning') }}
+              </p>
+            </div>
+
+            <form
+              v-else
+              class="flex items-end gap-3"
+              @submit.prevent="saveManualTotal"
+            >
+              <UFormField
+                :label="t('budget.total')"
+                class="flex-1"
+              >
+                <UInput
+                  v-model.number="manualTotalInput"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                />
+              </UFormField>
+              <UButton
+                variant="outline"
+                color="neutral"
+                @click="isEditingTotal = false"
+              >
+                {{ t('common.cancel') }}
+              </UButton>
+              <UButton
+                type="submit"
+                color="primary"
+              >
+                {{ t('common.save') }}
+              </UButton>
+            </form>
+          </UCard>
+
           <!-- Items -->
-          <UCard>
+          <UCard v-else>
             <template #header>
               <div class="flex items-center justify-between">
                 <h2 class="text-h1 text-default">
@@ -928,7 +1038,10 @@ function getItemName(item: BudgetItem): string {
               />
             </UFormField>
 
-            <UFormField :label="t('budget.signature.relationship')">
+            <UFormField
+              v-if="showOtherSigner"
+              :label="t('budget.signature.relationship')"
+            >
               <USelect
                 v-model="signatureForm.relationship_to_patient"
                 :items="[
@@ -938,6 +1051,14 @@ function getItemName(item: BudgetItem): string {
                 ]"
               />
             </UFormField>
+            <button
+              v-else
+              type="button"
+              class="text-xs text-muted hover:underline"
+              @click="showOtherSigner = true"
+            >
+              {{ t('budget.signature.otherSigner') }}
+            </button>
           </form>
 
           <template #footer>
@@ -971,22 +1092,6 @@ function getItemName(item: BudgetItem): string {
             :budget-id="currentBudget.id"
             :budget-status="currentBudget.status"
             :locale="locale"
-          />
-        </div>
-      </template>
-    </UModal>
-
-    <!-- Share public link modal -->
-    <UModal v-model:open="isShareLinkModalOpen">
-      <template #content>
-        <div class="p-1">
-          <PublicBudgetLinkCard
-            v-if="currentBudget?.public_token"
-            :token="currentBudget.public_token"
-            :status="currentBudget.status"
-            :patient-phone="currentBudget.patient?.phone"
-            :patient-first-name="currentBudget.patient?.first_name"
-            :budget-number="currentBudget.budget_number"
           />
         </div>
       </template>

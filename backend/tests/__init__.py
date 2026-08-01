@@ -1,1 +1,1 @@
-"""Test suite for DentalPin backend."""
+"""Test suite for Dentia backend."""

@@ -1,5 +1,5 @@
-"""DentalPin admin CLI package.
+"""Dentia admin CLI package.
 
 Entry point for ``python -m app.cli <subcommand> [...]``.
-The repo-root wrapper ``bin/dentalpin`` proxies to this.
+The repo-root wrapper ``bin/dentia`` proxies to this.
 """

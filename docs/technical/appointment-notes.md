@@ -403,8 +403,8 @@ Cambios:
               entity_type="appointment_note",
               canonical_uuid=note_canonical,
               source_system=source_system,
-              dentalpin_table="clinical_notes",
-              dentalpin_id=note.id,
+              dentia_table="clinical_notes",
+              dentia_id=note.id,
           )
   elif not notes_body:
       await ctx.resolver.mark_skipped("appointment_note", note_canonical, source_system)

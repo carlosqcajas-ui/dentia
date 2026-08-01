@@ -2,6 +2,11 @@
 # Reset database and run migrations
 # Usage: ./scripts/reset-db.sh
 #
+# Operates on whatever Postgres DATABASE_URL points to (e.g. a Supabase
+# project) — there is no local docker-compose `db` container anymore.
+# Requires the `backend` container to be up: it has the `psql` client
+# and knows DATABASE_URL via app.config.settings.
+#
 # Note: This only resets the schema. To seed demo data, run:
 #   ./scripts/seed-demo.sh
 
@@ -9,11 +14,15 @@ set -e
 
 echo "Resetting database..."
 
+# Resolve a psql-compatible connection string once (same asyncpg-prefix
+# rewrite backend/docker-entrypoint.sh already does).
+PG_URL=$(docker compose exec -T backend python -c "from app.config import settings; print(settings.DATABASE_URL.replace('postgresql+asyncpg://', 'postgresql://'))" | tr -d '\r')
+
 # Reset alembic version
-docker compose exec -T db psql -U dental -d dental_clinic -c "DELETE FROM alembic_version;" 2>/dev/null || true
+docker compose exec -T backend psql "$PG_URL" -c "DELETE FROM alembic_version;" 2>/dev/null || true
 
 # Drop all tables (in correct order to handle foreign keys)
-docker compose exec -T db psql -U dental -d dental_clinic << 'EOF'
+docker compose exec -T backend psql "$PG_URL" << 'EOF'
 DO $$
 DECLARE
     r RECORD;
@@ -38,7 +47,7 @@ docker compose restart backend >/dev/null
 # Wait for FastAPI to finish lifespan startup (which runs the module
 # registry reconcile) before we return — early callers would race it.
 for i in {1..30}; do
-  count=$(docker compose exec -T db psql -U dental -d dental_clinic -tA -c \
+  count=$(docker compose exec -T backend psql "$PG_URL" -tA -c \
     "SELECT COUNT(*) FROM core_module WHERE state='installed';" 2>/dev/null | tr -d '[:space:]')
   if [ -n "$count" ] && [ "$count" -gt 0 ]; then
     echo "  registry reconciled ($count modules installed)"

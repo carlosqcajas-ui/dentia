@@ -41,10 +41,10 @@ class _StubResolver:
         entity_type: str,
         canonical_uuid: str,
         source_system: str,
-        dentalpin_table: str,
-        dentalpin_id: Any,
+        dentia_table: str,
+        dentia_id: Any,
     ) -> None:
-        self._store[(entity_type, canonical_uuid)] = dentalpin_id
+        self._store[(entity_type, canonical_uuid)] = dentia_id
 
     async def mark_skipped(self, entity_type: str, canonical_uuid: str, source_system: str) -> None:
         self._skipped.add((entity_type, canonical_uuid))
@@ -192,8 +192,8 @@ async def test_books_earned_when_billed(db_session) -> None:
         entity_type="patient",
         canonical_uuid=canonical_patient,
         source_system="gesden",
-        dentalpin_table="patients",
-        dentalpin_id=patient.id,
+        dentia_table="patients",
+        dentia_id=patient.id,
     )
 
     payload = _payload(patient_uuid=canonical_patient, owed_amount="250.00")

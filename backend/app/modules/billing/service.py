@@ -1076,8 +1076,10 @@ class InvoiceService:
                     )
                 quantity = requested_qty
 
-            # Get description from catalog item
-            description = "Unknown treatment"
+            # Get description from catalog item, falling back to the
+            # budget item's own free-text description (custom-priced,
+            # no-catalog items).
+            description = budget_item.description or "Unknown treatment"
             internal_code = None
             if budget_item.catalog_item:
                 names = budget_item.catalog_item.names or {}

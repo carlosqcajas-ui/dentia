@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- fix(budget): removed the `budget.viewed`/`budget.reminder_sent`
+  timeline entries — both events were retired along with the
+  patient-facing public budget link (`docs/adr/0019`).
+
 - feat(agents): expose `tools.py` — `get_patient_timeline` (READ)
   wrapping `TimelineService.get_timeline`. Returns structured event
   metadata only (type/category/title/timestamp); free-text description +

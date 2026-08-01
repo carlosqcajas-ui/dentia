@@ -1,44 +1,27 @@
 services:
-  db:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB:-dental_clinic}
-      POSTGRES_USER: ${POSTGRES_USER:-dental}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dental} -d ${POSTGRES_DB:-dental_clinic}"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    restart: unless-stopped
-
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     environment:
       SERVICE_FQDN_BACKEND_8000: ${BACKEND_FQDN}
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-dental}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-dental_clinic}
+      # Production Postgres — a Supabase project's connection string, set
+      # as a secret in Coolify's env var UI. No bundled db container.
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in Coolify env vars (production Supabase connection string)}
       SECRET_KEY: ${SECRET_KEY}
       ENVIRONMENT: production
       ALLOWED_ORIGINS: ${FRONTEND_URL}
       STORAGE_BACKEND: local
       STORAGE_LOCAL_PATH: /app/storage
       # Demo deployments set SEED_ON_STARTUP=1 in Coolify env so a wiped
-      # DB volume self-heals on next restart: alembic recreates the
-      # schema and seed_demo.py repopulates it (idempotent — no-op when
-      # the demo clinic already exists). Real production deployments
-      # leave it unset so seed never runs.
+      # DB self-heals on next restart: alembic recreates the schema and
+      # seed_demo.py repopulates it (idempotent — no-op when the demo
+      # clinic already exists). Real production deployments leave it
+      # unset so seed never runs.
       SEED_ON_STARTUP: ${SEED_ON_STARTUP:-0}
       SEED_LANG: ${SEED_LANG:-es}
     volumes:
       - storage_data:/app/storage
-    depends_on:
-      db:
-        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=2).status == 200 else 1)"]
       interval: 30s
@@ -68,5 +51,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  pgdata:
   storage_data:

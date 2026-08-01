@@ -95,31 +95,46 @@ class BudgetItemService:
         budget_id: UUID,
         data: dict,
     ) -> BudgetItem:
-        """Create a budget item with price snapshot."""
-        # Get catalog item for price snapshot
-        catalog_item = await db.get(TreatmentCatalogItem, data["catalog_item_id"])
-        if not catalog_item or catalog_item.clinic_id != clinic_id:
-            raise ValueError("Invalid catalog item")
+        """Create a budget item with price snapshot.
+
+        ``catalog_item_id`` is optional — clinics that price case-by-case
+        can pass ``description`` + ``unit_price`` instead. When
+        ``catalog_item_id`` is absent, ``unit_price`` is required (there's
+        no catalog default to fall back to).
+        """
+        catalog_item_id = data.get("catalog_item_id")
+        catalog_item: TreatmentCatalogItem | None = None
+        vat_type_id = None
+        vat_rate = 0.0
+
+        if catalog_item_id is not None:
+            catalog_item = await db.get(TreatmentCatalogItem, catalog_item_id)
+            if not catalog_item or catalog_item.clinic_id != clinic_id:
+                raise ValueError("Invalid catalog item")
+            if catalog_item.vat_type_id:
+                vat_type = await db.get(VatType, catalog_item.vat_type_id)
+                if vat_type:
+                    vat_type_id = vat_type.id
+                    vat_rate = vat_type.rate
 
         # Snapshot the unit price if not provided
         unit_price = data.get("unit_price")
         if unit_price is None:
-            unit_price = catalog_item.default_price or Decimal("0.00")
+            if catalog_item is not None:
+                unit_price = catalog_item.default_price or Decimal("0.00")
+            else:
+                raise ValueError("unit_price is required for items without a catalog_item_id")
 
-        # Get VAT info from catalog item
-        vat_type_id = None
-        vat_rate = 0.0
-        if catalog_item.vat_type_id:
-            vat_type = await db.get(VatType, catalog_item.vat_type_id)
-            if vat_type:
-                vat_type_id = vat_type.id
-                vat_rate = vat_type.rate
+        description = data.get("description")
+        if catalog_item is None and not description:
+            raise ValueError("description is required for items without a catalog_item_id")
 
         # Create item
         item = BudgetItem(
             clinic_id=clinic_id,
             budget_id=budget_id,
-            catalog_item_id=data["catalog_item_id"],
+            catalog_item_id=catalog_item_id,
+            description=description,
             unit_price=unit_price,
             quantity=data.get("quantity", 1),
             discount_type=data.get("discount_type"),
@@ -150,7 +165,12 @@ class BudgetItemService:
         item: BudgetItem,
         data: dict,
     ) -> BudgetItem:
-        """Update a budget item."""
+        """Update a budget item.
+
+        Callers must have already rejected ``budget.is_manual_total``
+        budgets — this layer trusts the caller (``BudgetService``) to
+        enforce that invariant.
+        """
         for key, value in data.items():
             if value is not None and hasattr(item, key):
                 setattr(item, key, value)
@@ -377,8 +397,10 @@ class BudgetService:
         override = data.pop("budget_number", None)
         budget_number = override or await BudgetNumberService.generate_number(db, clinic_id)
 
-        # Extract items data
+        # Extract items data and the manual-total override (mutually
+        # exclusive — a manual-total budget has no items to extract).
         items_data = data.pop("items", [])
+        manual_total = data.pop("total", None)
 
         # Create budget
         budget = Budget(
@@ -390,12 +412,16 @@ class BudgetService:
         db.add(budget)
         await db.flush()
 
-        # Create items
-        for item_data in items_data:
-            await BudgetItemService.create_item(db, clinic_id, budget.id, item_data)
+        if budget.is_manual_total:
+            budget.total = manual_total or Decimal("0.00")
+            budget.subtotal = budget.total
+        else:
+            # Create items
+            for item_data in items_data:
+                await BudgetItemService.create_item(db, clinic_id, budget.id, item_data)
 
-        # Calculate totals
-        await BudgetService._recalculate_totals(db, budget)
+            # Calculate totals
+            await BudgetService._recalculate_totals(db, budget)
 
         # Add history entry
         await BudgetHistoryService.add_entry(
@@ -408,22 +434,6 @@ class BudgetService:
         )
 
         return budget
-
-    @staticmethod
-    async def get_by_public_token(
-        db: AsyncSession,
-        token: UUID,
-    ) -> Budget | None:
-        """Fetch a budget by its ``public_token`` (no clinic scope, since
-        the token itself is the access factor — see ADR 0006). Returns
-        ``None`` if missing or soft-deleted."""
-        result = await db.execute(
-            select(Budget).where(
-                Budget.public_token == token,
-                Budget.deleted_at.is_(None),
-            )
-        )
-        return result.scalar_one_or_none()
 
     @staticmethod
     async def create_from_plan_snapshot(
@@ -445,11 +455,7 @@ class BudgetService:
         """
         from sqlalchemy import text
 
-        from .workflow import (
-            DEFAULT_BUDGET_VALIDITY_DAYS,
-            BudgetWorkflowService,
-            _resolve_clinic_settings,
-        )
+        from .workflow import DEFAULT_BUDGET_VALIDITY_DAYS, _resolve_clinic_settings
 
         plan_id_raw = snapshot.get("plan_id")
         patient_id_raw = snapshot.get("patient_id")
@@ -482,12 +488,6 @@ class BudgetService:
         today = date.today()
 
         budget_number = await BudgetNumberService.generate_number(db, clinic_id)
-        public_auth_method = await BudgetWorkflowService.resolve_public_auth_method(
-            db,
-            clinic_id=clinic_id,
-            patient_id=UUID(patient_id_raw),
-            clinic_settings=clinic_settings,
-        )
 
         budget = Budget(
             clinic_id=clinic_id,
@@ -500,28 +500,30 @@ class BudgetService:
             created_by=user_id,
             plan_number_snapshot=plan_number,
             plan_status_snapshot="pending",
-            public_auth_method=public_auth_method,
         )
         db.add(budget)
         await db.flush()
 
         for item_snapshot in snapshot.get("items") or []:
-            catalog_item_id_raw = item_snapshot.get("catalog_item_id")
             treatment_id_raw = item_snapshot.get("treatment_id")
-            if not catalog_item_id_raw or not treatment_id_raw:
-                continue
             unit_price_raw = item_snapshot.get("unit_price")
+            catalog_item_id_raw = item_snapshot.get("catalog_item_id")
+            if not treatment_id_raw or unit_price_raw is None:
+                # No treatment to link, or no price at all (neither catalog
+                # nor manual) — nothing sensible to bill yet.
+                continue
             await BudgetItemService.create_item(
                 db,
                 clinic_id,
                 budget.id,
                 {
-                    "catalog_item_id": UUID(catalog_item_id_raw),
+                    "catalog_item_id": UUID(catalog_item_id_raw) if catalog_item_id_raw else None,
+                    "description": item_snapshot.get("description"),
                     "quantity": 1,
                     "treatment_id": UUID(treatment_id_raw),
                     "tooth_number": item_snapshot.get("tooth_number"),
                     "surfaces": item_snapshot.get("surfaces"),
-                    "unit_price": (Decimal(unit_price_raw) if unit_price_raw is not None else None),
+                    "unit_price": Decimal(unit_price_raw),
                 },
             )
 
@@ -614,6 +616,8 @@ class BudgetService:
         added_by: UUID,
     ) -> BudgetItem:
         """Add an item to a budget."""
+        if budget.is_manual_total:
+            raise ValueError("Manual-total budgets don't have line items")
         if budget.status != "draft":
             raise ValueError("Items can only be added to draft budgets")
 
@@ -631,7 +635,7 @@ class BudgetService:
             changed_by=added_by,
             new_state={
                 "item_id": str(item.id),
-                "catalog_item_id": str(item.catalog_item_id),
+                "catalog_item_id": str(item.catalog_item_id) if item.catalog_item_id else None,
                 "line_total": str(item.line_total),
             },
         )
@@ -646,6 +650,8 @@ class BudgetService:
         removed_by: UUID,
     ) -> None:
         """Remove an item from a budget."""
+        if budget.is_manual_total:
+            raise ValueError("Manual-total budgets don't have line items")
         if budget.status != "draft":
             raise ValueError("Items can only be removed from draft budgets")
 
@@ -664,6 +670,45 @@ class BudgetService:
             changed_by=removed_by,
             previous_state={"item_id": str(item_id)},
         )
+
+    @staticmethod
+    async def set_manual_total(
+        db: AsyncSession,
+        budget: Budget,
+        total: Decimal,
+        updated_by: UUID,
+    ) -> Budget:
+        """Set the total on a manual-total budget by hand.
+
+        Allowed in any non-deleted status — including ``accepted`` —
+        because clinics without a fiscal invoicing integration need to
+        correct a quote after the patient has already signed it. This
+        intentionally breaks the signed PDF's tamper-evidence guarantee
+        for this budget: ``document_hash`` is left untouched (it still
+        reflects the total at signing time) and the discrepancy is only
+        visible via this history entry. See CLAUDE.md gotchas.
+        """
+        if not budget.is_manual_total:
+            raise ValueError("Only manual-total budgets support set_manual_total")
+
+        previous_total = budget.total
+        budget.total = total
+        budget.subtotal = total
+        budget.total_discount = Decimal("0.00")
+        budget.total_tax = Decimal("0.00")
+
+        await BudgetHistoryService.add_entry(
+            db,
+            clinic_id=budget.clinic_id,
+            budget_id=budget.id,
+            action="total_updated",
+            changed_by=updated_by,
+            previous_state={"total": str(previous_total), "status": budget.status},
+            new_state={"total": str(total), "status": budget.status},
+        )
+
+        await db.flush()
+        return budget
 
     @staticmethod
     async def duplicate_budget(
@@ -697,9 +742,26 @@ class BudgetService:
             global_discount_value=source_budget.global_discount_value,
             internal_notes=source_budget.internal_notes,
             patient_notes=source_budget.patient_notes,
+            is_manual_total=source_budget.is_manual_total,
         )
         db.add(new_budget)
         await db.flush()
+
+        if source_budget.is_manual_total:
+            new_budget.total = source_budget.total
+            new_budget.subtotal = source_budget.total
+
+            await BudgetHistoryService.add_entry(
+                db,
+                clinic_id=new_budget.clinic_id,
+                budget_id=new_budget.id,
+                action="duplicated",
+                changed_by=created_by,
+                previous_state={"source_budget_id": str(source_budget.id)},
+                new_state={"version": new_budget.version},
+            )
+
+            return new_budget
 
         # Copy items
         for source_item in source_budget.items:
@@ -707,6 +769,7 @@ class BudgetService:
                 clinic_id=source_budget.clinic_id,
                 budget_id=new_budget.id,
                 catalog_item_id=source_item.catalog_item_id,
+                description=source_item.description,
                 unit_price=source_item.unit_price,
                 quantity=source_item.quantity,
                 discount_type=source_item.discount_type,
@@ -768,7 +831,15 @@ class BudgetService:
         db: AsyncSession,
         budget: Budget,
     ) -> None:
-        """Recalculate budget totals from items."""
+        """Recalculate budget totals from items.
+
+        No-op for ``is_manual_total`` budgets — their total is set
+        directly via ``set_manual_total`` and must never be overwritten
+        by item math (they have no items to sum in the first place).
+        """
+        if budget.is_manual_total:
+            return
+
         # Reload items
         result = await db.execute(select(BudgetItem).where(BudgetItem.budget_id == budget.id))
         items = list(result.scalars().all())

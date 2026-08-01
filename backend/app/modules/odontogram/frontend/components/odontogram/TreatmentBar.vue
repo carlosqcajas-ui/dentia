@@ -25,6 +25,8 @@ const props = withDefaults(defineProps<{
   selectedTreatment?: string | null
   /** Catalog item id selected via the bar — enables price/duration/material snapshot. */
   selectedCatalogItemId?: string | null
+  /** Manual price override for this case — takes precedence over the catalog price. */
+  selectedCustomPrice?: number | null
   selectedStatus: TreatmentStatus
   selectedPlanId?: string | null
   patientId?: string
@@ -41,6 +43,7 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   'update:selectedTreatment': [treatment: string | null]
   'update:selectedCatalogItemId': [catalogItemId: string | null]
+  'update:selectedCustomPrice': [price: number | null]
   'update:selectedStatus': [status: TreatmentStatus]
   'update:selectedPlanId': [planId: string | null]
   'treatmentSelect': [treatment: string]
@@ -316,7 +319,8 @@ async function applyGlobalTreatment(
       catalogItemId,
       scope,
       arch,
-      status: 'planned'
+      status: 'planned',
+      customPrice: props.selectedCustomPrice ?? undefined
     })
     if (!created) return
 
@@ -379,6 +383,19 @@ function selectTreatmentRegular(item: TreatmentBarItem) {
   emit('update:selectedCatalogItemId', item.catalogItemId)
   emit('update:selectedTreatment', item.odontogramType)
   emit('treatmentSelect', item.odontogramType)
+
+  // Suggest the catalog's default price as a starting point — the
+  // professional can freely override it per case in the price field below.
+  const catalogEntry = item.catalogItemId
+    ? treatmentCatalog.treatments.value.find(t => t.id === item.catalogItemId)
+    : undefined
+  const suggested = catalogEntry?.default_price ? Number(catalogEntry.default_price) : null
+  emit('update:selectedCustomPrice', suggested)
+}
+
+function handlePriceInput(event: Event) {
+  const value = (event.target as HTMLInputElement).value
+  emit('update:selectedCustomPrice', value === '' ? null : Number(value))
 }
 
 // Derived from props so a parent-driven selectedTreatment change keeps the chip
@@ -414,6 +431,7 @@ function selectStatus(status: TreatmentStatus) {
 function handleCancel() {
   emit('update:selectedTreatment', null)
   emit('update:selectedCatalogItemId', null)
+  emit('update:selectedCustomPrice', null)
   emit('cancel')
 }
 
@@ -511,6 +529,31 @@ function handleCreatePlan() {
       />
       <span class="plan-context-label">{{ t('clinical.plans.addingToPlan') }}:</span>
       <span class="plan-context-title">{{ planContextTitle }}</span>
+    </div>
+
+    <!-- Manual price — the professional sets the real price for this case.
+         Prefilled with the catalog's suggested price when available, but
+         always editable and required even when there's no catalog item. -->
+    <div
+      v-if="hasActiveMode && !isDiagnosisMode"
+      class="price-row"
+    >
+      <label
+        class="price-label"
+        for="treatment-bar-price"
+      >
+        {{ t('odontogram.treatmentBar.price') }}
+      </label>
+      <input
+        id="treatment-bar-price"
+        type="number"
+        step="0.01"
+        min="0"
+        class="price-input"
+        :value="selectedCustomPrice ?? ''"
+        :placeholder="t('odontogram.treatmentBar.pricePlaceholder')"
+        @input="handlePriceInput"
+      >
     </div>
 
     <!-- Top row: Status + Categories + Instructions -->
@@ -876,6 +919,58 @@ function handleCreatePlan() {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Manual price row */
+.price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #EFF6FF;
+  border: 1px solid #93C5FD;
+  border-radius: 8px;
+}
+
+:root.dark .price-row {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.price-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1D4ED8;
+  white-space: nowrap;
+}
+
+:root.dark .price-label {
+  color: #93C5FD;
+}
+
+.price-input {
+  flex: 1;
+  min-width: 0;
+  max-width: 160px;
+  padding: 5px 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  border: 1px solid #93C5FD;
+  background: white;
+  color: #1F2937;
+}
+
+:root.dark .price-input {
+  background: #1E293B;
+  border-color: rgba(59, 130, 246, 0.4);
+  color: #E5E7EB;
+}
+
+.price-input:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
 }
 
 /* Top row */

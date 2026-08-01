@@ -2,6 +2,13 @@
 import type { ModuleInfo } from '~/types'
 import { PERMISSIONS } from '~/config/permissions'
 
+// Module install/uninstall moved to the operator backoffice (/operator)
+// — it's a system-wide toggle, not per-clinic. This page is no longer
+// linked from Settings; block direct navigation too.
+definePageMeta({
+  middleware: [() => navigateTo('/settings')]
+})
+
 const { t } = useI18n()
 const toast = useToast()
 const { can } = usePermissions()

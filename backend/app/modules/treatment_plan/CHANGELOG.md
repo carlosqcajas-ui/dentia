@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- fix(budget): pipeline bandeja no longer selects/returns
+  `last_reminder_sent_at`/`viewed_at` on the embedded budget brief —
+  both columns were dropped from `budgets` when the patient-facing
+  public link was removed (`docs/adr/0019`).
+
+- fix(regionalize): replace hardcoded `€` with `Bs` in
+  `ConfirmPlanModal.vue` and `PipelineTabPanel.vue`.
+
 - i18n: add `fr` fallback to plan item name resolution in service
   layer so French-localized treatment names display correctly.
 

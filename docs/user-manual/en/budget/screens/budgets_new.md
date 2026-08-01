@@ -28,13 +28,14 @@ related_endpoints:
   - POST /api/v1/budget/budgets/{budget_id}/unlock-public
   - PUT /api/v1/budget/budgets/{budget_id}
   - PUT /api/v1/budget/budgets/{budget_id}/items/{item_id}
+  - PUT /api/v1/budget/budgets/{budget_id}/total
 related_permissions:
   - budget.read
   - budget.write
 related_paths:
   - backend/app/modules/budget/frontend/pages/budgets/new.vue
   - backend/app/modules/budget/router.py
-last_verified_commit: b1b82f5
+last_verified_commit: b79f849
 ---
 
 # New budget
@@ -58,23 +59,39 @@ state on save, and the workflow continues from the
 - **Price snapshot.** Each line records the catalog price effective
   at creation time. Editing the catalog later does not change
   existing budgets.
+- **Two budget types.** "Itemized" (default) breaks the quote down
+  treatment by treatment. "Free amount" is a single total with no
+  items, for clinics that don't invoice per treatment — the total can
+  be edited at any time after creation, even once sent or signed (see
+  [detail](./budgets_id.md)).
 
-## Create a budget
+## Create an itemized budget
 
 > Requires `budget.write`.
 
 1. If you didn't come from a patient record, pick the patient in
    the header.
-2. Add items from the catalog. For each line you can choose:
+2. Leave "Itemized" selected.
+3. Add items from the catalog. For each line you can choose:
    - Tooth and surfaces (FDI notation).
    - Quantity, unit price (prefilled from the catalog), line
      discount (percent or absolute).
    - VAT type (prefilled from the catalog).
-3. Apply a global discount if needed.
-4. Review the totals in the sidebar.
-5. **Save**. The budget is created in `draft` and you land on the
+4. Apply a global discount if needed.
+5. Review the totals in the sidebar.
+6. **Save**. The budget is created in `draft` and you land on the
    [detail](./budgets_id.md) to send it, sign it, or invoice it
    later.
+
+## Create a free-amount budget
+
+> Requires `budget.write`.
+
+1. Pick the patient.
+2. Choose "Free amount".
+3. Type the total.
+4. **Create budget**. You land straight on the
+   [detail](./budgets_id.md) — there is no item-adding step.
 
 ## Create from a treatment plan
 
