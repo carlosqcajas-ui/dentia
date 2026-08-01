@@ -23,14 +23,20 @@ export function useAuth() {
   // Cookie lifetime matches refresh token; JWT expiry is enforced by the
   // backend, and a 401 triggers refresh in useApi. Matching the access
   // cookie's maxAge to the 15min JWT TTL caused premature logouts.
+  //
+  // `secure` must reflect the actual request scheme, not "is this a
+  // production build" — a production deploy served over plain HTTP
+  // (no domain/TLS yet) would have the browser silently drop a
+  // Secure cookie, breaking login right after it appears to succeed.
+  const isHttps = useRequestURL().protocol === 'https:'
   const accessToken = useCookie('access_token', {
     maxAge: 60 * 60 * 24 * 7, // 7 days
-    secure: import.meta.env.PROD,
+    secure: isHttps,
     sameSite: 'lax'
   })
   const refreshToken = useCookie('refresh_token', {
     maxAge: 60 * 60 * 24 * 7, // 7 days
-    secure: import.meta.env.PROD,
+    secure: isHttps,
     sameSite: 'lax'
   })
 
