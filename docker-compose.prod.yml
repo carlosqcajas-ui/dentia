@@ -1,0 +1,50 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL:?Set DATABASE_URL in .env.production}
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY in .env.production}
+      ENVIRONMENT: production
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:?Set ALLOWED_ORIGINS in .env.production}
+      STORAGE_BACKEND: local
+      STORAGE_LOCAL_PATH: /app/storage
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      OPERATOR_SECRET_KEY: ${OPERATOR_SECRET_KEY:-}
+      SEED_ON_STARTUP: ${SEED_ON_STARTUP:-0}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=2).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+    volumes:
+      - storage_data:/app/storage
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.prod
+      args:
+        API_BASE_URL: ${API_BASE_URL:?Set API_BASE_URL in .env.production}
+    environment:
+      NUXT_PUBLIC_API_BASE_URL: ${API_BASE_URL:?Set API_BASE_URL in .env.production}
+    ports:
+      - "80:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+volumes:
+  storage_data:
