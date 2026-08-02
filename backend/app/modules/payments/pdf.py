@@ -167,7 +167,7 @@ td.num, th.num { text-align: right; }
 """
 
 
-def _fmt_receipt_number(payment: "Payment") -> str:
+def _fmt_receipt_number(payment: Payment) -> str:
     """Human-facing receipt reference.
 
     Falls back to a short slice of the UUID for rows recorded before the
@@ -179,7 +179,7 @@ def _fmt_receipt_number(payment: "Payment") -> str:
     return f"REC-{payment.receipt_number:06d}"
 
 
-def _allocation_rows(payment: "Payment", labels: dict, money) -> str:
+def _allocation_rows(payment: Payment, labels: dict, money) -> str:
     rows = []
     for alloc in payment.allocations or []:
         if alloc.target_type == "budget":
@@ -189,13 +189,12 @@ def _allocation_rows(payment: "Payment", labels: dict, money) -> str:
         else:
             target = labels["on_account"]
         rows.append(
-            f"<tr><td>{escape(target)}</td>"
-            f"<td class='num'>{escape(money(alloc.amount))}</td></tr>"
+            f"<tr><td>{escape(target)}</td><td class='num'>{escape(money(alloc.amount))}</td></tr>"
         )
     return "".join(rows)
 
 
-def _refund_rows(payment: "Payment", labels: dict, money) -> str:
+def _refund_rows(payment: Payment, labels: dict, money) -> str:
     rows = []
     for refund in payment.refunds or []:
         when = refund.refunded_at.strftime("%d/%m/%Y") if refund.refunded_at else "—"
@@ -212,9 +211,9 @@ class PaymentReceiptPDFService:
 
     @staticmethod
     async def generate_pdf(
-        payment: "Payment",
-        clinic: "Clinic | None",
-        patient: "Patient | None",
+        payment: Payment,
+        clinic: Clinic | None,
+        patient: Patient | None,
         locale: str = "es",
     ) -> bytes:
         """Render the receipt.
@@ -228,9 +227,9 @@ class PaymentReceiptPDFService:
 
     @staticmethod
     def _build_html(
-        payment: "Payment",
-        clinic: "Clinic | None",
-        patient: "Patient | None",
+        payment: Payment,
+        clinic: Clinic | None,
+        patient: Patient | None,
         locale: str,
     ) -> str:
         labels = _LABELS.get(locale, _LABELS["es"])
