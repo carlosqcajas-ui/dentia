@@ -15,6 +15,9 @@ const LABELS = {
   schedule: /schedule|agenda|citas|appointments/i,
   plans: /^(treatment plans|planes de tratamiento)$/i,
   quotes: /quotes|budgets|presupuestos/i,
+  payments: /payments|cobros|paiements/i,
+  // Billing has no navigation entry — the clinic does not emit formal
+  // invoices. Asserted absent below so a re-added nav entry fails CI.
   invoices: /invoices|facturas/i,
   reports: /reports|informes/i
 }
@@ -31,14 +34,15 @@ test.describe('hygienist sees clinical + scheduling, no reports', () => {
   })
 })
 
-test.describe('receptionist sees patients + schedule + invoices', () => {
+test.describe('receptionist sees patients + schedule + payments', () => {
   test.use({ role: 'receptionist' })
 
   test('navigation is filtered to front-desk flows', async ({ loggedIn }) => {
     const nav = loggedIn.getByRole('navigation').first()
     await expect(nav.getByRole('link', { name: LABELS.patients })).toBeVisible()
     await expect(nav.getByRole('link', { name: LABELS.schedule })).toBeVisible()
-    await expect(nav.getByRole('link', { name: LABELS.invoices })).toBeVisible()
+    await expect(nav.getByRole('link', { name: LABELS.payments })).toBeVisible()
+    await expect(nav.getByRole('link', { name: LABELS.invoices })).toHaveCount(0)
   })
 })
 
@@ -52,9 +56,10 @@ test.describe('dentist has full clinical access', () => {
       LABELS.schedule,
       LABELS.plans,
       LABELS.quotes,
-      LABELS.invoices
+      LABELS.payments
     ]) {
       await expect(nav.getByRole('link', { name: label })).toBeVisible()
     }
+    await expect(nav.getByRole('link', { name: LABELS.invoices })).toHaveCount(0)
   })
 })

@@ -36,14 +36,14 @@ related_permissions:
 related_paths:
   - backend/app/modules/billing/frontend/pages/invoices/[id]/index.vue
   - backend/app/modules/billing/router.py
-last_verified_commit: b1b82f5
+last_verified_commit: 0eb12fe
 ---
 
 # Detalle de factura
 
 Vista de una factura concreta. Cabecera con datos legales (emisor,
 receptor, NIF, dirección), líneas, totales y panel lateral con
-cobros enlazados, historial y estado de envío fiscal (verifactu).
+cobros enlazados e historial.
 Desde aquí se emite, se manda al paciente y, si procede, se anula o
 se emite un abono.
 
@@ -60,9 +60,6 @@ se emite un abono.
   WeasyPrint.
 - **Historial.** Cambios de estado y eventos clave en orden
   cronológico.
-- **VeriFactu.** Si el módulo está instalado, al emitir se encola el
-  envío a AEAT. El estado (`pending`, `sent`, `rejected`) se ve en
-  el lateral.
 
 ## Emitir una factura
 
@@ -72,8 +69,6 @@ se emite un abono.
    vez emitida, no se podrá editar.
 2. Pulsa **Emitir**. La serie activa asigna número fiscal, se
    publica `invoice.issued` y se congela el documento.
-3. Si `verifactu` está instalado, el *hook* encolará el envío a
-   AEAT y verás el estado en el panel lateral.
 
 ## Enviar por email
 
@@ -108,9 +103,6 @@ se emite un abono.
 - **El PDF descargado es la vista previa con marca de agua.** La
   factura está en `draft` o `void`. El PDF definitivo solo existe
   para facturas emitidas.
-- **VeriFactu en `rejected`.** Mira el panel lateral o el módulo
-  `verifactu` para el motivo. Suele requerir editar datos del
-  emisor o del receptor y reenviar manualmente.
 - **Falta el botón *Cobrar*.** No vive aquí. Crea el cobro desde
   `/payments` (o desde la ficha del paciente) y asígnalo a esta
   factura mediante `invoice_payments`.

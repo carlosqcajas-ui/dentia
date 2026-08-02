@@ -1,6 +1,6 @@
 ---
 module: migration_import
-last_verified_commit: HEAD
+last_verified_commit: 0eb12fe
 locale: es
 ---
 
@@ -37,9 +37,10 @@ pertenecen a los módulos habituales (`patients`, `payments`, `media`,
 4. Revisa la **Vista previa**: contadores por entidad, filas de
    ejemplo, advertencias del extractor y el número de binarios
    adjuntos esperados.
-5. Si el archivo contiene datos legales españoles (Verifactu) y el
-   módulo Verifactu está instalado, marca *"Importar datos legales
-   Verifactu"*. Para clínicas de PT / FR esa casilla está oculta.
+5. Si el archivo contiene hashes legales del sistema anterior, marca
+   *"Importar datos legales del sistema anterior"*. Se guardan tal cual,
+   como referencia histórica: Dentia no los vuelve a firmar ni los
+   valida. Si el archivo no trae esos datos, la casilla está oculta.
 6. Pulsa **Confirmar e importar**. El progreso se muestra en vivo.
 7. El agente de sincronización sube radiografías y documentos en
    segundo plano. Aparecerán en la pestaña *Documentos* de cada

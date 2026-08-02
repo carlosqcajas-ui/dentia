@@ -12,18 +12,16 @@
  */
 import { useModuleSlots } from '~~/app/composables/useModuleSlots'
 
-export type AdministrationMode = 'budgets' | 'billing' | 'payments' | 'documents'
+export type AdministrationMode = 'budgets' | 'payments' | 'documents'
 
 interface ModeBadges {
   budgets?: string | number
-  billing?: string | number
   payments?: string | number
   documents?: string | number
 }
 
 interface ModeBadgeColors {
   budgets?: 'neutral' | 'primary' | 'success' | 'warning' | 'error' | 'info'
-  billing?: 'neutral' | 'primary' | 'success' | 'warning' | 'error' | 'info'
   payments?: 'neutral' | 'primary' | 'success' | 'warning' | 'error' | 'info'
   documents?: 'neutral' | 'primary' | 'success' | 'warning' | 'error' | 'info'
 }
@@ -53,13 +51,6 @@ const options = computed(() => {
       icon: 'i-lucide-file-text',
       badge: props.badges?.budgets,
       badgeColor: props.badgeColors?.budgets ?? 'neutral'
-    },
-    {
-      value: 'billing',
-      label: t('patientDetail.tabs.billing'),
-      icon: 'i-lucide-receipt',
-      badge: props.badges?.billing,
-      badgeColor: props.badgeColors?.billing ?? 'neutral'
     }
   ]
   if (paymentsAvailable.value) {

@@ -106,13 +106,6 @@ export const PERMISSIONS = {
     recordRefund: 'payments.record.refund',
     reportsRead: 'payments.reports.read'
   },
-  verifactu: {
-    settingsRead: 'verifactu.settings.read',
-    settingsConfigure: 'verifactu.settings.configure',
-    queueManage: 'verifactu.queue.manage',
-    recordsRead: 'verifactu.records.read',
-    environmentPromote: 'verifactu.environment.promote'
-  },
   recalls: {
     read: 'recalls.read',
     write: 'recalls.write',
@@ -140,9 +133,5 @@ export const PERMISSIONS = {
     historyReadAll: 'copilot.history.read_all',
     supervise: 'copilot.supervise',
     configure: 'copilot.configure'
-  },
-  accountingExport: {
-    read: 'accounting_export.export.read',
-    run: 'accounting_export.export.run'
   }
 } as const

@@ -410,10 +410,10 @@ async def update_billing_party(
 
     * The invoice is still ``draft`` (no compliance record yet), OR
     * The compliance hook says the latest fiscal record is correctable
-      (Verifactu: ``rejected`` / ``failed_validation``).
+      (typically ``rejected`` / ``failed_validation``).
 
     On success, triggers an automatic regenerate of the compliance
-    record (Verifactu Subsanación) so the user does not need a second
+    record (a compliance resubmission) so the user does not need a second
     click in the queue.
 
     Optimistic lock via ``expected_updated_at`` — 409 on mismatch.

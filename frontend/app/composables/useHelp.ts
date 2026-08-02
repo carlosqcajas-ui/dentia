@@ -13,7 +13,7 @@
  *   /                       → /index
  *   /patients               → /patients
  *   /patients/[id]          → /patients_[id]
- *   /settings/verifactu/queue → /settings_verifactu_queue
+ *   /settings/invoice-series  → /settings_invoice-series
  *
  * Dynamic params in the live route (e.g. `/patients/abc-123`) collapse
  * to the static `[id]` form so they hit the same MD file the portal

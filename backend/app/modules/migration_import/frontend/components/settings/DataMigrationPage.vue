@@ -53,8 +53,7 @@ interface PreviewResponse {
   entities: EntityPreview[]
   warnings: Array<{ severity: string; code: string; message: string; entity_type: string | null }>
   files: { total: number; with_sha256: number; without_sha256: number }
-  verifactu_data_detected: boolean
-  verifactu_module_installed: boolean
+  fiscal_legal_data_detected: boolean
 }
 
 interface ProposalSummary {
@@ -110,8 +109,8 @@ const proposalsError = ref('')
 const bulkAcceptedNotice = ref<number | null>(null)
 
 const canExecute = computed(() => can(PERMISSIONS.migrationImport.jobExecute))
-const verifactuOptInVisible = computed(
-  () => !!preview.value?.verifactu_data_detected && !!preview.value?.verifactu_module_installed
+const legalFieldsOptInVisible = computed(
+  () => !!preview.value?.fiscal_legal_data_detected
 )
 
 function onFileChange(evt: Event) {
@@ -442,8 +441,14 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <UFormField v-if="verifactuOptInVisible" :help="t('migrationImport.preview.verifactuHelp')">
-          <UCheckbox v-model="importFiscal" :label="t('migrationImport.preview.verifactuCheckbox')" />
+        <UFormField
+          v-if="legalFieldsOptInVisible"
+          :help="t('migrationImport.preview.legalFieldsHelp')"
+        >
+          <UCheckbox
+            v-model="importFiscal"
+            :label="t('migrationImport.preview.legalFieldsCheckbox')"
+          />
         </UFormField>
 
         <div

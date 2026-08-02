@@ -13,10 +13,10 @@ Key invariants:
 - Cross-module FKs are confined to `media.documents` (binary staging).
   All other writes go through each target module's service layer so
   business events fire normally.
-- `verifactu` is intentionally **not** declared in `manifest.depends`:
-  Portuguese / French clinics must be able to import without it. The
-  fiscal-document mapper detects verifactu at runtime via the module
-  registry and gates legal-hash preservation behind operator opt-in.
+- Legal-hash preservation on imported invoices is gated behind an
+  operator opt-in (`ImportJob.import_fiscal_compliance`). Dentia ships
+  no tax-authority integration; those values are copied verbatim and
+  never re-signed or validated.
 - Idempotent: every persisted Dentia row is recorded in
   ``entity_mappings`` keyed by ``(clinic_id, source_system,
   canonical_uuid, entity_type)`` so re-running a job is a no-op.
@@ -51,9 +51,7 @@ class MigrationImportModule(BaseModule):
         "license": "BSL-1.1",
         "category": "official",
         # Hard module deps — every mapper below calls a service in one
-        # of these. ``verifactu`` is intentionally OFF this list: the
-        # fiscal-document mapper detects it at runtime so PT/FR clinics
-        # without Spanish compliance can still import.
+        # of these.
         "depends": [
             "patients",
             "patients_clinical",

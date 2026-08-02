@@ -135,7 +135,7 @@ class InvoiceWorkflowService:
         # Validate billing data completeness.
         #
         # ``billing_tax_id`` is only mandatory when a country compliance
-        # hook requires it (e.g. Spanish Verifactu). Plain invoicing —
+        # hook requires it (e.g. a Spanish Veri*Factu module). Plain invoicing —
         # this deployment's default, used for internal accounting control
         # rather than government-audited fiscal documents — only needs a
         # billing name; patients without a NIT can still be invoiced.
@@ -299,7 +299,7 @@ class InvoiceWorkflowService:
         Drafts: open editing (no fiscal commitment yet).
 
         Issued + compliance hook present: only allowed when the hook's
-        latest fiscal record reports a correctable state. For Verifactu
+        latest fiscal record reports a correctable state. For a Veri*Factu hook
         that means ``rejected`` / ``failed_validation`` — AEAT never
         registered the original data, so the spec admits Subsanación
         with corrected data. ``accepted`` invoices require a credit

@@ -101,9 +101,9 @@ class PreviewResponse(BaseModel):
     entities: list[EntityPreview]
     warnings: list[WarningView]
     files: FilesManifestSummary
-    # Verifactu opt-in surface — UI hides the checkbox unless both are true.
-    verifactu_data_detected: bool
-    verifactu_module_installed: bool
+    # Legal-hash opt-in surface — UI hides the checkbox unless the
+    # source file actually carries legal fields.
+    fiscal_legal_data_detected: bool
 
 
 class ExecuteRequest(BaseModel):

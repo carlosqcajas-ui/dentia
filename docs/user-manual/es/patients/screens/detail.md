@@ -14,7 +14,7 @@ related_permissions:
 related_paths:
   - backend/app/modules/patients/router.py
   - backend/app/modules/patients/frontend/pages/patients/[id].vue
-last_verified_commit: 7ead18e
+last_verified_commit: 0eb12fe
 ---
 
 # Ficha del paciente
@@ -49,7 +49,7 @@ también deep-links — un click llega al detalle.
 - **Pestañas** — Datos, Clínica, Administración, Galería, Histórico.
   En Clínica y Administración el sub-nav es un pill-bar con todos los
   modos visibles desde el primer momento (Diagnóstico · Planes ·
-  Citas · Histórico / Presupuestos · Facturación · Cobros · Documentos).
+  Citas · Histórico / Presupuestos · Cobros · Documentos).
 - **Mobile** — la cabecera se condensa, las cards se apilan a una
   columna y aparece una barra inferior fija (Cita · Cobrar · Nota).
 

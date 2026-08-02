@@ -676,7 +676,7 @@ class InvoiceService:
         if compliance_severity:
             # Country-agnostic: matches any country key in the JSONB
             # whose ``severity`` is in the requested list. Compliance
-            # modules (verifactu et al.) write ``severity`` themselves
+            # modules, when registered, write ``severity`` themselves
             # — billing knows nothing about the vocabulary beyond the
             # whitelist enforced at the router boundary.
             from sqlalchemy import bindparam, text

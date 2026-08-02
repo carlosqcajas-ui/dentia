@@ -61,17 +61,9 @@ export default defineNuxtPlugin(() => {
   })
 
   // ---- Billing (module-provided pages) ------------------------------
-  registerSettingsPage({
-    path: 'invoice-series',
-    category: 'billing',
-    labelKey: 'invoiceSeries.title',
-    descriptionKey: 'invoiceSeries.description',
-    icon: 'i-lucide-hash',
-    permission: 'admin.clinic.read',
-    to: '/settings/invoice-series',
-    searchKeywords: ['series', 'numeracion', 'invoice', 'numbering', 'factura'],
-    order: 10
-  })
+  // `invoice-series` is deliberately not registered: the clinic does not
+  // emit formal invoices, so there is no numbering to configure. VAT
+  // types stay — budgets carry `vat_type_id` / `vat_rate` on every item.
   registerSettingsPage({
     path: 'vat-types',
     category: 'billing',
