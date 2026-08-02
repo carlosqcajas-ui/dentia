@@ -1,6 +1,6 @@
 ---
 module: migration_import
-last_verified_commit: HEAD
+last_verified_commit: 0eb12fe
 locale: es
 screen: data-migration
 route: /settings/workspace/data-migration
@@ -37,7 +37,7 @@ Migración de datos**.
 | **Advertencias**      | Lista de advertencias emitidas por el extractor + por el propio importador. |
 | **Revisar mapeos del catálogo** | Calcula propuestas por cada `Tratamientos` de Gesdén (POST `/proposals`), muestra una tabla con la propuesta automática (enlazar / similitud + score / crear nuevo) y permite aceptar, ignorar o re-enlazar por fila. Incluye atajo "Aceptar todos los matches ≥ 0.9". |
 | **Panel de filtrado de profesionales** | Visible solo si el archivo declara filas `professional`. Muestra un desglose (total / inactivos en origen / columnas solo de agenda / sin actividad en 24m), un input numérico para *actividad mínima en meses* (por defecto 24) y tres casillas: excluir columnas solo de agenda, excluir profesionales inactivos en origen y un opcional "importar solo dentistas e higienistas". Los profesionales filtrados se importan igualmente como usuarios (para que las citas, tratamientos, presupuestos y pagos históricos sigan resolviendo) pero con `is_active=False` y rol `assistant`, que los oculta del listado de profesionales de la agenda. Después se pueden reactivar individualmente desde **Ajustes → Usuarios**. |
-| **Casilla Verifactu** | Solo se muestra si Verifactu está instalado Y el archivo contiene hashes legales. |
+| **Casilla datos legales** | Solo se muestra si el archivo contiene hashes legales del sistema anterior. |
 | **Botón Confirmar**   | Lanza `POST /execute`. Requiere `migration_import.job.execute`. |
 | **Progreso**          | Mientras `status = executing`, muestra *X de Y entidades*. Refresca cada 2 s. |
 

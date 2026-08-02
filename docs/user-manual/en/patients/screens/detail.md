@@ -14,7 +14,7 @@ related_permissions:
 related_paths:
   - backend/app/modules/patients/router.py
   - backend/app/modules/patients/frontend/pages/patients/[id].vue
-last_verified_commit: 7ead18e
+last_verified_commit: 0eb12fe
 ---
 
 # Patient detail
@@ -50,7 +50,7 @@ one click reaches the detail.
 - **Tabs** — Info, Clinical, Administration, Gallery, History. In
   Clinical and Administration the sub-nav is a pill-bar exposing all
   modes upfront (Diagnosis · Plans · Appointments · History /
-  Budgets · Billing · Payments · Documents).
+  Budgets · Payments · Documents).
 - **Mobile** — header condenses, cards stack to a single column and
   a sticky bottom bar surfaces the three core actions
   (Appointment · Collect · Note).

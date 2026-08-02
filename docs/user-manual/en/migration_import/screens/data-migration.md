@@ -1,6 +1,6 @@
 ---
 module: migration_import
-last_verified_commit: HEAD
+last_verified_commit: 0eb12fe
 locale: en
 screen: data-migration
 route: /settings/workspace/data-migration
@@ -36,7 +36,7 @@ Single-page wizard located at **Settings → Workspace → Data migration**.
 | **Warnings list**| Up to all warnings emitted by the extractor + this importer. |
 | **Catalog mapping review** | Builds proposals for every Gesdén `Tratamientos` row (POST `/proposals`), shows a table with the automatic proposal (link / fuzzy + score / create new), and lets the operator accept, ignore or relink per row. "Accept all matches ≥ 0.9" shortcut for high-confidence bulk acceptance. |
 | **Professional filtering panel** | Visible only when the file declares `professional` rows. Shows a breakdown (total / inactive-in-source / agenda-only columns / no activity in 24m), a numeric input for *minimum activity months* (default 24), plus three checkboxes: exclude agenda-only columns, exclude staff inactive in the source, and an opt-in "import only dentists and hygienists". Filtered staff are still imported as users (so historical appointments, treatments, budgets and payments keep resolving) but with `is_active=False` and the `assistant` role, which removes them from the agenda's clinician list. Reactivate individual users from **Settings → Users** afterwards. |
-| **Verifactu checkbox** | Visible only when Verifactu is installed AND the file contains legal hashes. |
+| **Legal data checkbox** | Visible only when the file contains legal hashes from the previous system. |
 | **Confirm button** | Triggers `POST /execute`. Gated by `migration_import.job.execute`. |
 | **Progress**     | While `status = executing`, shows *X of Y entities*. Polls every 2 s. |
 

@@ -1,6 +1,6 @@
 """Generic ``compliance_severity`` filter on the invoice list endpoint.
 
-Billing knows nothing about Verifactu — it just filters on
+Billing knows nothing about any compliance module — it just filters on
 ``compliance_data.<country>.severity`` via JSONB. These tests use ES as
 the country but the implementation must stay country-agnostic.
 """

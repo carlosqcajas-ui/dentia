@@ -1,6 +1,6 @@
 ---
 module: migration_import
-last_verified_commit: HEAD
+last_verified_commit: 0eb12fe
 ---
 
 # migration_import — technical overview
@@ -72,21 +72,24 @@ levels per `dental-bridge/docs/migration_order.md`). Each mapper:
 Per-entity mapper failures emit a warning and continue; one bad row
 doesn't fail the whole job.
 
-### Verifactu — runtime-tolerant integration
+### Legal hashes from the source system
 
-`verifactu` is intentionally **not** in `manifest.depends`. The
+Source files may carry legal hash fields stamped by whatever certified
+invoicing system the clinic used before (Veri\*Factu chains, ATCUD, QR
+payloads). Dentia ships no tax-authority integration, so the
 `fiscal_document` mapper:
 
 1. Always creates the commercial invoice (number, totals, dates).
-2. Detects verifactu via `module_registry.is_loaded("verifactu")`.
-3. Preserves the legal hashes (`legal_hash`, `hash_control`, `atcud`,
-   `qr_code`) only when both verifactu is loaded **and**
-   `ImportJob.import_fiscal_compliance` is true.
-4. Emits `verifactu.skipped` (verifactu absent) or `verifactu.opt_out`
-   (operator opt-out) warnings when the file *had* legal data we did
-   not preserve.
+2. Preserves the legal fields (`legal_hash`, `hash_control`, `atcud`,
+   `qr_code`) **verbatim** — never re-signed, never validated — and only
+   when `ImportJob.import_fiscal_compliance` is true.
+3. Emits a `fiscal_document.legal_fields_dropped` warning when the file
+   *had* legal data the operator chose not to preserve.
 
-This lets clinics in PT / FR import without owning verifactu.
+Note that `billing.Invoice` has no columns for these fields today, so
+step 2 is a no-op against the current schema (`_stamp_legal_fields`
+guards with `hasattr`). The opt-in is kept as the seam for a future
+compliance module that adds them.
 
 ## Binary ingestion
 

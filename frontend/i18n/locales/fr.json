@@ -2160,6 +2160,10 @@
         "autoCloseHelp": "Les plans avec un devis expiré et sans action pendant ce nombre de jours passent à Fermé (plage 7-180).",
         "save": "Enregistrer"
       },
+      "manualTotal": {
+        "label": "Devis avec un total défini par le professionnel",
+        "help": "Lors de la génération d'un devis à partir d'un plan, aucun détail par ligne : la somme des traitements est proposée et le professionnel ajuste le montant final. Il reste modifiable ensuite, même une fois accepté."
+      },
       "reminders": {
         "enabled": "Envoyer des rappels automatiques à 7j et 14j",
         "enabledHelp": "Lorsqu'activé, le système envoie un email au patient concernant les devis en attente. Lorsque désactivé, la réception suit manuellement.",

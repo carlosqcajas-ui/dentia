@@ -30,8 +30,8 @@
       "filesTotal": "Total",
       "filesWithSha": "Avec sha256",
       "filesWithoutSha": "Sans sha256",
-      "verifactuCheckbox": "Importer les données légales Verifactu",
-      "verifactuHelp": "Préserve les hachages légaux (Verifactu) sur les factures. Uniquement disponible lorsque le module Verifactu est installé et que le fichier contient ces données.",
+      "legalFieldsCheckbox": "Importer les données légales du système précédent",
+      "legalFieldsHelp": "Préserve les hachages légaux (Veri*Factu, ATCUD, QR) tels quels depuis le fichier. Dentia ne les resigne ni ne les valide ; ils sont conservés à titre de référence historique.",
       "confirm": "Confirmer et importer",
       "warning": "Cette action est irréversible. Vérifiez les données avant de confirmer."
     },

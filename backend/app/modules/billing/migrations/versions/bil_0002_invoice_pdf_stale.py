@@ -1,6 +1,6 @@
 """billing — Invoice.pdf_stale flag.
 
-Set by compliance modules (Verifactu) after regenerating the fiscal
+Set by a registered compliance module after regenerating the fiscal
 record so the previously rendered PDF/QR is known to be obsolete. UI
 shows a badge and offers re-download.
 

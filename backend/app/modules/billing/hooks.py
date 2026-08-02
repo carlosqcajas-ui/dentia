@@ -1,8 +1,10 @@
 """Billing compliance hooks for country module extensibility.
 
 This module provides an interface for country-specific compliance modules
-(e.g., verifactu-es for Spain, factur-x for France) to integrate with
-the billing system without the billing module knowing about specific countries.
+(a Veri*Factu module for Spain, Factur-X for France, SIN for Bolivia…) to
+integrate with the billing system without the billing module knowing about
+specific countries. **No compliance module ships with Dentia today** — this
+is the extension seam one would plug into.
 
 The billing module NEVER imports or references any country module directly.
 Country modules register themselves via the BillingHookRegistry.
@@ -22,13 +24,13 @@ if TYPE_CHECKING:
 class BillingComplianceHook(ABC):
     """Interface for country-specific compliance modules.
 
-    Any country compliance module (verifactu-es, factur-x-fr, sdi-it, etc.)
-    implements this interface and registers with BillingHookRegistry.
-    The billing module does not know which countries exist.
+    A country compliance module implements this interface and registers
+    with BillingHookRegistry. The billing module does not know which
+    countries exist.
 
-    Example implementation for Spain (in separate module):
+    Example implementation for Spain (in a separate module):
 
-        class VerifactuHook(BillingComplianceHook):
+        class SpainComplianceHook(BillingComplianceHook):
             @property
             def country_code(self) -> str:
                 return "ES"
@@ -134,7 +136,7 @@ class BillingComplianceHook(ABC):
                original_invoice.status = "cancelled"
                ```
 
-            2. Submit to tax authority (TicketBAI, Verifactu, SAT):
+            2. Submit to the tax authority (TicketBAI, Veri*Factu, SAT):
                ```python
                return {"tax_id": "...", "qr_code": "..."}
                ```
@@ -245,10 +247,11 @@ class BillingComplianceHook(ABC):
         can still be edited under this country's compliance rules.
 
         Default returns ``(False, ...)`` — most countries treat issued
-        invoices as immutable. Verifactu overrides this to allow editing
-        when the latest fiscal record is in a correctable state
-        (``rejected`` / ``failed_validation``) — AEAT never registered
-        the original data so Subsanación with corrected data is legal.
+        invoices as immutable, and with no compliance module registered
+        that default is what always applies. A hook may override it to
+        allow editing when the latest fiscal record is in a correctable
+        state (the tax authority never registered the original data, so
+        resubmitting corrected data is legal).
         """
 
         return False, "Issued invoices are immutable for this country."
@@ -278,10 +281,10 @@ class BillingHookRegistry:
 
     Usage by country module:
 
-        # In verifactu_es/__init__.py
-        class VerifactuModule(BaseModule):
+        # In the compliance module's __init__.py
+        class SpainComplianceModule(BaseModule):
             def on_load(self):
-                BillingHookRegistry.register(VerifactuHook())
+                BillingHookRegistry.register(SpainComplianceHook())
 
             def on_unload(self):
                 BillingHookRegistry.unregister("ES")
@@ -297,7 +300,7 @@ class BillingHookRegistry:
             hook: Hook instance to register
 
         Example:
-            BillingHookRegistry.register(VerifactuHook())
+            BillingHookRegistry.register(SpainComplianceHook())
         """
         cls._hooks[hook.country_code] = hook
 

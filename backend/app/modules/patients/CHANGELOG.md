@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- chore(patients): drop the `billing` sub-mode from the Administración
+  tab (`AdministrationTab.vue`, `AdministrationModeToggle.vue`). The
+  pill-bar is now Presupuestos / Cobros / Documentos, and
+  `AdministrationMode` no longer includes `'billing'`. This also removes
+  the last direct cross-layer component reference from `patients` to the
+  billing layer (`<PatientBillingSummary>`), which was never mediated by
+  a slot. Unrelated to the patient's *billing data* section (NIT / fiscal
+  address) in `PatientSectionEditModal.vue` — that stays.
+
 - fix(regionalize): default `PatientAddress.country` and
   `BillingAddress.country` to `BO` instead of the leftover Spain
   default (`ES`) — backend schemas (`schemas.py`) and

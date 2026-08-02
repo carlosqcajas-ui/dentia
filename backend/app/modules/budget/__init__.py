@@ -147,13 +147,20 @@ class BudgetModule(BaseModule):
                 budget = await db.get(Budget, UUID(budget_id_raw))
                 if not budget or budget.status != "draft":
                     return
+                # A manual-total budget owns no items (ADR 0018) — the
+                # professional typed the figure. Mirroring plan items into
+                # it would leave orphan rows that no total reflects.
+                if budget.is_manual_total:
+                    return
 
                 await BudgetItemService.create_item(
                     db,
                     UUID(clinic_id),
                     UUID(budget_id_raw),
                     {
-                        "catalog_item_id": UUID(catalog_item_id_raw) if catalog_item_id_raw else None,
+                        "catalog_item_id": UUID(catalog_item_id_raw)
+                        if catalog_item_id_raw
+                        else None,
                         "description": description,
                         "quantity": 1,
                         "treatment_id": UUID(treatment_id_raw),
@@ -193,6 +200,11 @@ class BudgetModule(BaseModule):
             try:
                 budget = await db.get(Budget, UUID(budget_id_raw))
                 if not budget or budget.status != "draft":
+                    return
+                # A manual-total budget owns no items (ADR 0018) — the
+                # professional typed the figure. Mirroring plan items into
+                # it would leave orphan rows that no total reflects.
+                if budget.is_manual_total:
                     return
 
                 item_result = await db.execute(
@@ -235,6 +247,10 @@ class BudgetModule(BaseModule):
                 budget = await db.get(Budget, UUID(budget_id_raw))
                 if not budget or budget.status != "draft":
                     logger.warning("Cannot sync non-draft budget %s", budget_id_raw)
+                    return
+
+                if budget.is_manual_total:
+                    logger.info("Budget %s is manual-total; skipping item sync", budget_id_raw)
                     return
 
                 existing_result = await db.execute(

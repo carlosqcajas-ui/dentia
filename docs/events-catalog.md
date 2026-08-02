@@ -47,7 +47,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 | `invoice.cancelled` | `EventType.INVOICE_CANCELLED` | — | — |
 | `invoice.created` | `EventType.INVOICE_CREATED` | — | — |
 | `invoice.issued` | `EventType.INVOICE_ISSUED` | `billing` | `patient_timeline` |
-| `invoice.paid` | `EventType.INVOICE_PAID` | `billing` | `patient_timeline`, `verifactu` |
+| `invoice.paid` | `EventType.INVOICE_PAID` | `billing` | `patient_timeline` |
 | `invoice.partial_paid` | `EventType.INVOICE_PARTIAL_PAID` | — | — |
 | `invoice.sent` | `EventType.INVOICE_SENT` | `billing` | `notifications` |
 | `invoice.voided` | `EventType.INVOICE_VOIDED` | — | — |
@@ -101,7 +101,6 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 | `treatment_plan.treatment_added` | `EventType.TREATMENT_PLAN_TREATMENT_ADDED` | `treatment_plan` | `budget` |
 | `treatment_plan.treatment_completed` | `EventType.TREATMENT_PLAN_TREATMENT_COMPLETED` | `treatment_plan` | `patient_timeline`, `recalls` |
 | `treatment_plan.treatment_removed` | `EventType.TREATMENT_PLAN_TREATMENT_REMOVED` | `treatment_plan` | `budget` |
-| `verifactu.record.rejected` | `EventType.VERIFACTU_RECORD_REJECTED` | `verifactu` | — |
 
 ## Detail
 
@@ -400,7 +399,6 @@ Maintained by `backend/scripts/generate_catalogs.py`.
   - `billing` — `backend/app/modules/billing/workflow.py:455`
 - **Subscribers:**
   - `patient_timeline`
-  - `verifactu`
 
 ### `invoice.partial_paid`
 
@@ -793,10 +791,3 @@ Maintained by `backend/scripts/generate_catalogs.py`.
   - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:810`
 - **Subscribers:**
   - `budget`
-
-### `verifactu.record.rejected`
-
-- **Constant:** `EventType.VERIFACTU_RECORD_REJECTED`
-- **Publishers:**
-  - `verifactu` — `backend/app/modules/verifactu/services/submission_queue.py:271`
-- **Subscribers:** —

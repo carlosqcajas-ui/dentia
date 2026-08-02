@@ -32,11 +32,10 @@ dependencies = [
     # Locale-aware currency formatting (PDFs, emails). Stdlib has no
     # equivalent of Intl.NumberFormat; babel is the de facto standard.
     "babel>=2.14",
-    # Verifactu (AEAT) module dependencies. httpx for mTLS submissions,
-    # lxml for SOAP response parsing, qrcode for the per-invoice QR.
+    # Async HTTP client: the whatsapp_kapso REST client and the test
+    # suite's ASGI transport. (lxml + qrcode went out with the verifactu
+    # module — nothing imports them any more.)
     "httpx>=0.26.0",
-    "lxml>=5.0.0",
-    "qrcode[pil]>=7.4.0",
     # Image processing for media module: thumbnail generation + EXIF
     # extraction on upload. Drives the photo gallery UX.
     "Pillow>=10.0.0",
@@ -73,7 +72,6 @@ notifications = "app.modules.notifications:NotificationsModule"
 reports = "app.modules.reports:ReportsModule"
 schedules = "app.modules.schedules:SchedulesModule"
 recalls = "app.modules.recalls:RecallsModule"
-verifactu = "app.modules.verifactu:VerifactuModule"
 migration_import = "app.modules.migration_import:MigrationImportModule"
 copilot = "app.modules.copilot:CopilotModule"
 

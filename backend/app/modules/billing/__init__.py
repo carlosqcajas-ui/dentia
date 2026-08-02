@@ -39,17 +39,17 @@ class BillingModule(BaseModule):
             "assistant": ["read", "write"],
             "receptionist": ["read", "write"],
         },
+        # No navigation entry: the clinic does not emit formal invoices
+        # (Bolivia issues fiscal documents through SIN, which this module
+        # does not implement — its only compliance hook is Spain's
+        # Veri*Factu). Budgets + payments carry the accounting axis. The
+        # pages under `frontend/pages/invoices/` and the API stay mounted
+        # and reachable by URL; only the entry points are hidden. Hiding
+        # via `role_permissions` would not work — `admin` gets `*` from
+        # the core ROLE_PERMISSIONS table.
         "frontend": {
             "layer_path": "frontend",
-            "navigation": [
-                {
-                    "label": "nav.invoices",
-                    "icon": "i-lucide-receipt",
-                    "to": "/invoices",
-                    "permission": "billing.read",
-                    "order": 50,
-                },
-            ],
+            "navigation": [],
         },
     }
 

@@ -85,4 +85,4 @@ Every module is agent-addressable. Expose the operations an AI agent should be a
 - **Foundational, simple, non-removable** → `backend/app/modules/patients/`
 - **Removable, isolation-critical** → `backend/app/modules/schedules/` (issue #39)
 - **Heavy `depends`, event-driven** → `backend/app/modules/treatment_plan/`
-- **Compliance/integration with external system** → `backend/app/modules/verifactu/`
+- **Compliance/integration with external system** → implement `BillingComplianceHook` (`backend/app/modules/billing/hooks.py`); no such module ships today

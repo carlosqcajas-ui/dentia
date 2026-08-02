@@ -1,8 +1,8 @@
 """Thin Kapso REST client (Meta WhatsApp Cloud API proxy).
 
-Just the few calls the adapter + template sync need. Pattern mirrors
-``verifactu/services/aeat_client.py``: an ``httpx.AsyncClient`` per call with a
-timeout, mapping transport/4xx/5xx errors to a single ``KapsoError``.
+Just the few calls the adapter + template sync need: an
+``httpx.AsyncClient`` per call with a timeout, mapping transport/4xx/5xx
+errors to a single ``KapsoError``.
 """
 
 from __future__ import annotations

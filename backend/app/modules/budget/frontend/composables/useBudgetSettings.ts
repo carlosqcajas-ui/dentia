@@ -5,6 +5,8 @@ export interface BudgetSettings {
   plan_auto_close_days_after_expiry: number
   budget_reminders_enabled: boolean
   budget_public_auth_disabled: boolean
+  /** Plan-derived budgets are created in manual-total mode (ADR 0018). */
+  budget_manual_total_default: boolean
 }
 
 export type BudgetSettingsPatch = Partial<BudgetSettings>

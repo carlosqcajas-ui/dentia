@@ -15,8 +15,7 @@ and hydrates the current clinic with the extracted data. Issue #78.
 - **Auto-install**: no (admin activates from the modules page)
 - **Removable**: yes (own Alembic branch, uninstall round-trip green)
 - **Depends**: `patients`, `schedules`, `treatment_plan`, `billing`,
-  `payments`, `media`. `verifactu` is intentionally **not** in
-  `depends` so PT/FR clinics can import without it.
+  `payments`, `media`.
 
 ## What it does
 
@@ -38,11 +37,11 @@ and hydrates the current clinic with the extracted data. Issue #78.
   `entity_mappings` row keyed by
   `(clinic_id, source_system, canonical_uuid, entity_type)`.
   Re-running a job is a no-op.
-- **`verifactu` opt-in at runtime**: the fiscal-document mapper
-  detects the module at runtime via `module_registry.is_loaded(...)`.
-  Legal hashes (Hash / HashControl / ATCUD / QR) are preserved only
-  when (a) verifactu is loaded AND (b) the operator ticked
-  *"Importar datos legales Verifactu"* in the preview.
+- **Legal-hash opt-in**: legal hashes from the previous system
+  (Hash / HashControl / ATCUD / QR) are preserved verbatim — never
+  re-signed or validated — only when the operator ticked *"Importar
+  datos legales del sistema anterior"* in the preview. The checkbox
+  appears only when the file actually carries such data.
 - **Mapper coverage today**: `patient`, `professional`,
   `patient_document`, `payment`, `fiscal_document`. Everything else
   lands in `raw_entities` for forward-compatibility — a future module

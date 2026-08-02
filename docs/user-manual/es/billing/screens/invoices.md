@@ -36,7 +36,7 @@ related_permissions:
 related_paths:
   - backend/app/modules/billing/frontend/pages/invoices/index.vue
   - backend/app/modules/billing/router.py
-last_verified_commit: b1b82f5
+last_verified_commit: 0eb12fe
 ---
 
 # Listado de facturas
@@ -57,10 +57,10 @@ para emitir, enviar por email o anular.
 - **Búsqueda y filtros.** Buscar por número, paciente o NIF.
   Filtros: estado, rango de fechas de emisión, serie y *con
   presupuesto*.
-- **Cumplimiento.** Cuando el módulo `verifactu` está instalado,
-  emitir una factura encola el envío a AEAT a través del *hook*
-  asociado a `invoice.issued`. El estado de envío se ve en el
-  detalle.
+- **Cumplimiento.** No hay ningún módulo de compliance instalado, así
+  que emitir no dispara ningún envío a una autoridad tributaria. La
+  columna de estado fiscal queda vacía. El *hook* de `invoice.issued`
+  sigue disponible como punto de extensión.
 
 ## Encontrar una factura
 

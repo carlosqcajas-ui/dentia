@@ -10,7 +10,7 @@
  * Slug from route:
  *   /patients               → patients
  *   /patients/[id]          → patients_[id]
- *   /settings/verifactu/queue → settings_verifactu_queue
+ *   /settings/invoice-series  → settings_invoice-series
  *   /                       → index
  */
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises";

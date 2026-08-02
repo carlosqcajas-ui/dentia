@@ -36,7 +36,7 @@ related_permissions:
 related_paths:
   - backend/app/modules/billing/frontend/pages/invoices/index.vue
   - backend/app/modules/billing/router.py
-last_verified_commit: b1b82f5
+last_verified_commit: 0eb12fe
 ---
 
 # Invoice list
@@ -56,10 +56,10 @@ open invoices to issue, email, or void them.
   voiding an issued invoice leaves it in the audit history.
 - **Search and filters.** Search by number, patient, or tax ID.
   Filters: status, issue date range, series, and *with budget*.
-- **Compliance.** When the `verifactu` module is installed,
-  issuing an invoice queues the AEAT submission through the
-  `invoice.issued` hook. The submission state is visible on the
-  detail.
+- **Compliance.** No compliance module is installed, so issuing does
+  not queue any tax-authority submission. The fiscal state column stays
+  empty. The `invoice.issued` hook remains available as the extension
+  point.
 
 ## Find an invoice
 

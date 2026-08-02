@@ -85,6 +85,17 @@ contract.
 - **Plan reverse-lookup uses raw SQL** (`_lookup_plan_id`) instead of
   importing the `TreatmentPlan` model, so event payloads can carry
   `plan_id` without violating ADR 0003.
+- **Plan-derived budgets follow the clinic's manual-total policy.**
+  `clinic.settings['budget_manual_total_default']` decides whether
+  `create_from_plan_snapshot` (called on plan confirm) builds an
+  itemized budget or a manual-total one seeded with the plan's sum.
+  The `generate-budget` endpoint on treatment_plan can override it
+  per call. Both paths must stay in sync — a clinic that flips the
+  setting expects it to apply everywhere a plan becomes a budget.
+- **The three plan→budget event handlers bail out on
+  `is_manual_total`.** Don't remove those guards: a manual-total
+  budget has no items by definition, and mirroring plan items into it
+  leaves orphan rows that no total reflects.
 - **Budget versioning** keeps every prior version — never overwrite.
 - **No patient self-service.** There is deliberately no unauthenticated
   route that lets a patient accept/reject/view a budget — see ADR

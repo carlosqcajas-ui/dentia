@@ -66,7 +66,7 @@ Reference material:
 - Glossary: `docs/glossary.md`
 - Module catalog: `docs/modules-catalog.md` (auto-generated)
 - Event catalog: `docs/events-catalog.md` (auto-generated)
-- Reference modules to copy from: `patients` (simple), `schedules` (removable), `treatment_plan` (heavy deps), `verifactu` (compliance)
+- Reference modules to copy from: `patients` (simple), `schedules` (removable), `treatment_plan` (heavy deps), `payments` (primitive, event-fed)
 
 ---
 

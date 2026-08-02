@@ -58,7 +58,7 @@ def _import_all_models() -> None:
         try:
             importlib.import_module(f"app.modules.{name}.models")
         except ModuleNotFoundError:
-            continue  # module owns no tables (e.g. accounting_export)
+            continue  # module owns no tables (e.g. reports)
 
 
 def _manifest_depends(module_name: str) -> set[str]:

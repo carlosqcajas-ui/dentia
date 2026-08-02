@@ -1,14 +1,21 @@
 ---
 module: billing
-last_verified_commit: b1b82f5
+last_verified_commit: 0eb12fe
 ---
 
 # Facturación
 
+> [!WARNING]
+> **Esta sección está oculta en la interfaz.** Esta clínica no emite
+> facturación formal — los presupuestos y los cobros llevan el
+> seguimiento contable. Las páginas de facturas siguen accesibles por
+> URL, pero no aparecen en el menú ni en Ajustes. Dentia no integra con
+> ninguna autoridad tributaria: las facturas son documentos internos,
+> no comprobantes fiscales.
+
 El módulo de facturación gestiona las facturas, abonos y notas de
-crédito de la clínica, su PDF y el cumplimiento fiscal (la
-integración con AEAT vive en el módulo opcional `verifactu`). Lleva
-también la configuración de series de facturación.
+crédito de la clínica y su PDF. Lleva también la configuración de
+series de facturación.
 
 Las facturas pueden crearse desde cero o desde un presupuesto
 aceptado del módulo `budget`. Los **cobros** se enlazan con las
@@ -46,7 +53,5 @@ módulo `payments` (`billing` depende de `payments`, no al revés).
 - **Cobros (`payments`)** — `billing` depende de `payments`; una
   factura enlaza con uno o varios cobros vía `invoice_payments`.
 - **Catálogo** — proveedor de ítems facturables y tipos de IVA.
-- **VeriFactu** — módulo de compliance fiscal (AEAT). Engancha por
-  *hook* al evento `invoice.issued` para encolar el envío.
 - **Informes** — los KPIs y la tendencia de facturación viven en
   `/reports/billing`.

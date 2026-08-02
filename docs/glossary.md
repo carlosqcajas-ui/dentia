@@ -75,25 +75,23 @@ ADRs) for the full story.
 | EN (code) | ES (UI) | Definition |
 |---|---|---|
 | Budget | Presupuesto | A pre-invoice quote sent to the patient. Has its own workflow (`draft → sent → accepted → rejected`). |
-| Invoice | Factura | A fiscal document. Spanish clinics must comply with Veri\*Factu (see verifactu module). |
+| Invoice | Factura | An internal accounting document. Dentia ships no tax-authority integration — see the `BillingComplianceHook` seam in `backend/app/modules/billing/hooks.py`. |
 | Credit note | Factura rectificativa | An invoice correction document. |
 | Payment | Pago | Money received against an invoice. Can be partial. |
 | Catalog | Catálogo | Module that holds priced services and products. |
 
-## Compliance (ES)
+## Compliance
+
+Dentia ships **no tax-authority integration**. Invoices from the
+`billing` module are internal accounting documents, not government-audited
+fiscal documents. A country compliance module plugs in via
+`BillingComplianceHook` (`backend/app/modules/billing/hooks.py`).
 
 | Term | Definition |
 |---|---|
-| Veri\*Factu | Spanish AEAT mandatory e-invoicing regime (RD 1007/2023). Implemented by the `verifactu` module. |
-| AEAT | Agencia Estatal de Administración Tributaria — Spanish tax authority. |
-| FNMT | Spanish certificate authority issuing the digital certs used for AEAT mTLS. |
-| SIF | Sistema Informático de Facturación — invoicing software. Regulated under RD 1007/2023 art. 13. |
-| Producer | "Productor del SIF" — the legally responsible party for compliance. See `backend/app/modules/verifactu/README.md`. |
-| Declaración responsable | Producer's signed compliance declaration. Required before enabling Veri\*Factu in `prod`. |
-| RegistroAlta / RegistroAnulacion | Veri\*Factu submission entries. |
-| Huella | SHA-256 chained hash linking each fiscal record to the previous one. |
-| Sociedades | Spanish corporations — Veri\*Factu mandatory from 2027-01-01. |
-| Autónomos | Spanish self-employed (IRPF) — Veri\*Factu mandatory from 2027-07-01. |
+| SIN | Servicio de Impuestos Nacionales — Bolivian tax authority. Its *facturación electrónica en línea* is **not** implemented. |
+| Compliance hook | `BillingComplianceHook` implementation registered by a country module. None ships today. |
+| Huella | SHA-256 chained hash linking each fiscal record to the previous one. Terminology kept for imported historical records. |
 
 ## Module system
 

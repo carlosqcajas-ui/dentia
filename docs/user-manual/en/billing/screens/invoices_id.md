@@ -30,14 +30,14 @@ related_permissions:
 related_paths:
   - backend/app/modules/billing/frontend/pages/invoices/[id]/index.vue
   - backend/app/modules/billing/router.py
-last_verified_commit: b1b82f5
+last_verified_commit: 0eb12fe
 ---
 
 # Invoice detail
 
 View of one invoice. Header with legal data (issuer, receiver, tax
 ID, address), line items, totals, and a sidebar with linked
-payments, history, and fiscal submission state (verifactu). From
+payments and history. From
 here you issue, send to the patient, and — when appropriate — void
 or issue a credit note.
 
@@ -52,9 +52,6 @@ or issue a credit note.
 - **PDF.** Two formats: draft (watermarked preview) and final (only
   for `issued`). PDF generation uses WeasyPrint.
 - **History.** Status changes and key events in chronological order.
-- **VeriFactu.** When the module is installed, issuing the invoice
-  queues the AEAT submission. State (`pending`, `sent`, `rejected`)
-  is shown in the sidebar.
 
 ## Issue an invoice
 
@@ -64,8 +61,6 @@ or issue a credit note.
    issued, the document cannot be edited.
 2. Click **Issue**. The active series assigns the fiscal number,
    `invoice.issued` is published, and the document is frozen.
-3. If `verifactu` is installed, the hook will queue the AEAT
-   submission and you'll see the state on the sidebar.
 
 ## Send by email
 
@@ -100,9 +95,6 @@ or issue a credit note.
 - **The downloaded PDF is the watermarked preview.** The invoice
   is in `draft` or `void`. The final PDF only exists for issued
   invoices.
-- **VeriFactu is `rejected`.** Check the sidebar or the
-  `verifactu` module for the reason. Usually requires editing
-  issuer or receiver data and re-submitting manually.
 - **No *Charge* button.** It does not live here. Create the
   payment under `/payments` (or from the patient record) and link
   it to this invoice via `invoice_payments`.

@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- chore(migration_import): drop the runtime `verifactu` integration
+  alongside the module's removal. The fiscal-document mapper now gates
+  legal-hash preservation on `ImportJob.import_fiscal_compliance` alone
+  (no `module_registry.is_loaded` probe). Renames on the preview
+  contract: `verifactu_data_detected` + `verifactu_module_installed` →
+  a single `fiscal_legal_data_detected`; `_detect_verifactu_data` →
+  `_detect_fiscal_legal_data`. Import warning codes `verifactu.skipped`
+  / `verifactu.opt_out` collapse into
+  `fiscal_document.legal_fields_dropped`. i18n keys
+  `preview.verifactuCheckbox` / `preview.verifactuHelp` →
+  `preview.legalFieldsCheckbox` / `preview.legalFieldsHelp` (es/en/fr).
+  Behaviour is otherwise unchanged — `billing.Invoice` still has no
+  columns for these fields, so `_stamp_legal_fields` remains a no-op.
+
 - i18n: add French locale (`fr.json`) with full UI coverage.
 
 - fix(entity_mappings): widen ``source_canonical_uuid`` from

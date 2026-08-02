@@ -30,8 +30,8 @@
       "filesTotal": "Total",
       "filesWithSha": "With sha256",
       "filesWithoutSha": "Without sha256",
-      "verifactuCheckbox": "Import Verifactu legal data",
-      "verifactuHelp": "Preserves legal hashes (Verifactu) on invoices. Only available when the Verifactu module is installed and the file contains that data.",
+      "legalFieldsCheckbox": "Import legal data from the previous system",
+      "legalFieldsHelp": "Preserves legal hashes (Veri*Factu, ATCUD, QR) verbatim from the file. Dentia never re-signs or validates them; they are kept as a historical reference only.",
       "confirm": "Confirm and import",
       "warning": "This action cannot be undone. Review the data before confirming."
     },

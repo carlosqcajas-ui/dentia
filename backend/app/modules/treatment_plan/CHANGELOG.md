@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- feat(manual-total): `POST /treatment-plans/{id}/generate-budget`
+  accepts an optional body — `is_manual_total` and `total` — to override
+  the clinic's `budget_manual_total_default` for one budget. Unset, the
+  clinic setting decides and a manual total is seeded from the plan's
+  own prices. The "no catalog items" 400 no longer applies in
+  manual-total mode: a plan whose treatments carry no catalog price is
+  exactly the case that mode exists for. `GenerateBudgetResponse` now
+  returns `is_manual_total` so the UI can label the result.
+
 - fix(budget): pipeline bandeja no longer selects/returns
   `last_reminder_sent_at`/`viewed_at` on the embedded budget brief —
   both columns were dropped from `budgets` when the patient-facing

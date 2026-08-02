@@ -10,7 +10,6 @@ Maintained by `backend/scripts/generate_catalogs.py`. CI fails if a manifest cha
 
 | Module | Version | Category | Depends | Install | Removable | Permissions | Emits | Consumes | FE layer |
 |--------|---------|----------|---------|---------|-----------|-------------|-------|----------|----------|
-| `accounting_export` | 0.1.0 | official | billing, payments | manual | yes | 2 | 0 | 0 | yes |
 | `agenda` | 0.4.0 | official | patients, catalog, odontogram | auto | no | 4 | 11 | 0 | yes |
 | `billing` | 0.1.0 | official | patients, catalog, budget, payments | auto | no | 3 | 3 | 1 | yes |
 | `budget` | 0.1.0 | official | patients, catalog, odontogram | auto | no | 5 | 5 | 4 | yes |
@@ -30,27 +29,9 @@ Maintained by `backend/scripts/generate_catalogs.py`. CI fails if a manifest cha
 | `reports` | 0.1.0 | official | patients, agenda, catalog, budget, billing, payments | auto | no | 3 | 0 | 0 | yes |
 | `schedules` | 0.1.0 | official | agenda | auto | yes | 8 | 0 | 3 | yes |
 | `treatment_plan` | 0.1.0 | official | patients, agenda, odontogram, catalog, budget, media | auto | no | 5 | 13 | 5 | yes |
-| `verifactu` | 0.1.0 | official | billing, catalog | manual | yes | 5 | 1 | 1 | yes |
 | `whatsapp_kapso` | 0.1.0 | community | notifications, patients | manual | yes | 2 | 0 | 0 | yes |
 
 ## Modules
-
-### `accounting_export` — v0.1.0
-
-Export invoices and payments for the accountant (gestoría).
-
-- **Author:** Dentia Core Team
-- **License:** BSL-1.1
-- **Category:** official
-- **Install policy:** installable=True · auto_install=False · removable=True
-- **Depends:** `billing`, `payments`
-- **Frontend layer:** `frontend`
-- **Permissions:**
-  - `accounting_export.export.read`
-  - `accounting_export.export.run`
-- **Events emitted:** —
-- **Events consumed:** —
-- **Module CLAUDE.md:** [`backend/app/modules/accounting_export/CLAUDE.md`](../backend/app/modules/accounting_export/CLAUDE.md)
 
 ### `agenda` — v0.4.0
 
@@ -551,28 +532,6 @@ Patient treatment plans with budget + odontogram sync.
   - `budget.renegotiated`
   - `odontogram.treatment.performed`
 - **Module CLAUDE.md:** [`backend/app/modules/treatment_plan/CLAUDE.md`](../backend/app/modules/treatment_plan/CLAUDE.md)
-
-### `verifactu` — v0.1.0
-
-Cumplimiento Veri*Factu (AEAT) para clínicas en España.
-
-- **Author:** Dentia Core Team
-- **License:** BSL-1.1
-- **Category:** official
-- **Install policy:** installable=True · auto_install=False · removable=True
-- **Depends:** `billing`, `catalog`
-- **Frontend layer:** `frontend`
-- **Permissions:**
-  - `verifactu.environment.promote`
-  - `verifactu.queue.manage`
-  - `verifactu.records.read`
-  - `verifactu.settings.configure`
-  - `verifactu.settings.read`
-- **Events emitted:**
-  - `verifactu.record.rejected`
-- **Events consumed:**
-  - `invoice.paid`
-- **Module CLAUDE.md:** [`backend/app/modules/verifactu/CLAUDE.md`](../backend/app/modules/verifactu/CLAUDE.md)
 
 ### `whatsapp_kapso` — v0.1.0
 
