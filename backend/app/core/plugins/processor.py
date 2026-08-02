@@ -508,7 +508,7 @@ def _module_branch_label(revision: str) -> str | None:
     ``branch_labels`` because Alembic propagates labels upward to all
     ancestors of a labelled revision — that propagation would otherwise
     misattribute a main-linear revision to a downstream branch (e.g.
-    ``tp_0002`` reported as ``verifactu`` because ``vfy_0001`` chains off
+    ``bud_0002`` reported as ``billing`` because ``bil_0001`` chains off
     it).
     """
     from alembic.config import Config

@@ -26,7 +26,6 @@ from uuid import UUID
 from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.plugins import module_registry
 from app.database import async_session_maker
 
 from .dpmf import DpmfHandle, open_dpmf
@@ -202,9 +201,7 @@ class ImportJobService:
             previews = ImportJobService._build_entity_previews(handle)
             warnings = ImportJobService._build_warnings(handle)
             files = ImportJobService._build_files_summary(handle)
-            verifactu_detected = _detect_verifactu_data(handle)
-
-        verifactu_installed = module_registry.is_loaded("verifactu")
+            legal_data_detected = _detect_fiscal_legal_data(handle)
 
         from .schemas import ImportJobResponse
 
@@ -213,8 +210,7 @@ class ImportJobService:
             entities=previews,
             warnings=warnings,
             files=files,
-            verifactu_data_detected=verifactu_detected,
-            verifactu_module_installed=verifactu_installed,
+            fiscal_legal_data_detected=legal_data_detected,
         )
 
     @staticmethod
@@ -935,8 +931,13 @@ def _build_filter_options(execute_options: dict[str, Any] | None) -> Professiona
     )
 
 
-def _detect_verifactu_data(handle: DpmfHandle) -> bool:
-    """Scan fiscal_document payloads for Spanish legal hash fields."""
+def _detect_fiscal_legal_data(handle: DpmfHandle) -> bool:
+    """Scan fiscal_document payloads for legal hash fields.
+
+    Covers whatever certified invoicing system produced the source file
+    (Veri*Factu chains, ATCUD, QR payloads…). Dentia only ever copies
+    these verbatim — see ``mappers/fiscal_document.py``.
+    """
     if "fiscal_document" not in handle.entity_counts():
         return False
     for row in handle.entity_iter("fiscal_document"):

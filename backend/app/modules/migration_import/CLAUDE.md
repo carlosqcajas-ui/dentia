@@ -12,7 +12,7 @@ Routes mounted at `/api/v1/migration_import/`.
 
 - `POST   /jobs`                       — `migration_import.job.write`. Upload `.dpm`.
 - `POST   /jobs/{id}/validate`         — `migration_import.job.write`. Decrypt/decompress/verify hash.
-- `POST   /jobs/{id}/preview`          — `migration_import.job.read`. Entity counts + sample rows + verifactu detection.
+- `POST   /jobs/{id}/preview`          — `migration_import.job.read`. Entity counts + sample rows + legal-hash detection.
 - `POST   /jobs/{id}/proposals`        — `migration_import.job.execute`. Dry-run catalog mapper, persist per-row `MappingDecision`. Idempotent.
 - `GET    /jobs/{id}/proposals`        — `migration_import.job.read`. Paginated list filterable by `operator_action` and `proposed_action`.
 - `PATCH  /jobs/{id}/proposals/{canonical_uuid}` — `migration_import.job.execute`. Operator decision: accepted / relinked / create_new / ignored.
@@ -27,11 +27,12 @@ Routes mounted at `/api/v1/migration_import/`.
 
 `manifest.depends = ["patients", "agenda", "schedules", "treatment_plan", "billing", "payments", "media"]`.
 
-**`verifactu` is intentionally NOT in `depends`.** Portuguese/French
-clinics import without it. The fiscal-document mapper detects it at
-runtime through `module_registry.is_loaded("verifactu")` and gates
-legal-hash preservation behind an operator opt-in checkbox shown in
-the preview step.
+Legal-hash preservation on imported invoices is gated behind an
+operator opt-in checkbox shown in the preview step
+(`ImportJob.import_fiscal_compliance`). Dentia ships no tax-authority
+integration: those values are copied verbatim, never re-signed or
+validated. Note `billing.Invoice` has no columns for them today, so
+`_stamp_legal_fields` is a no-op against the current schema.
 
 ## Permissions
 

@@ -44,15 +44,19 @@ by tests in `tests/test_module_tools.py`.
 
 ## Lifecycle
 
-- `removable=False`. Fiscal data has legal retention (see verifactu
-  module for AEAT specifics).
+- `removable=False`. Accounting data has legal retention.
 
 ## Gotchas
 
-- **Compliance hooks live in compliance modules**, not here. The
-  `verifactu` module attaches via `BillingComplianceHook` on
-  `invoice.issued` to chain into AEAT. Don't import verifactu from
-  billing — the relation is via hooks + events.
+- **Hidden from the UI.** `manifest.frontend.navigation` is empty and
+  the `invoice-series` settings page is unregistered — this deployment
+  does not emit formal invoices. Pages/API stay mounted and reachable
+  by URL. Don't re-add a nav entry without revisiting that decision.
+- **Compliance hooks live in compliance modules**, not here.
+  `BillingComplianceHook` (`hooks.py`) is the seam a country module
+  would register on. **No compliance module ships today** — the
+  `verifactu` (AEAT) module was removed in 2026-08. Don't import a
+  compliance module from billing; the relation is via hooks + events.
 - **PDF generation uses WeasyPrint** (`pdf.py`). Requires the system
   fonts present in the production image.
 - **Credit notes** are issued via the same workflow as invoices,

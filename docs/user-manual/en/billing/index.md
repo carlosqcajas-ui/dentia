@@ -1,14 +1,19 @@
 ---
 module: billing
-last_verified_commit: b1b82f5
+last_verified_commit: 0eb12fe
 ---
 
 # Billing
 
-The billing module manages the clinic's invoices, credit notes,
-their PDFs, and the fiscal compliance hook (AEAT integration lives
-in the optional `verifactu` module). It also owns the configuration
-of invoice series.
+> [!WARNING]
+> **This section is hidden in the UI.** This clinic does not issue
+> formal invoices — budgets and payments carry the accounting trail.
+> The invoice pages remain reachable by URL but no longer appear in the
+> navigation or in Settings. Dentia integrates with no tax authority:
+> invoices are internal documents, not fiscal receipts.
+
+The billing module manages the clinic's invoices, credit notes, and
+their PDFs. It also owns the configuration of invoice series.
 
 Invoices can be created from scratch or from an accepted budget on
 the `budget` module. **Payments** link to invoices through
@@ -46,7 +51,5 @@ the `budget` module. **Payments** link to invoices through
 - **Payments** — `billing` depends on `payments`; an invoice links
   to one or more payments via `invoice_payments`.
 - **Catalog** — provider of invoiceable items and VAT types.
-- **VeriFactu** — fiscal compliance module (AEAT). Hooks into
-  `invoice.issued` to queue the submission.
 - **Reports** — billing KPIs and trends live under
   `/reports/billing`.

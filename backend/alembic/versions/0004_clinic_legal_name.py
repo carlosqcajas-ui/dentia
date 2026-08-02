@@ -1,9 +1,9 @@
 """core — add clinics.legal_name column.
 
-Spanish AEAT compliance (verifactu) needs the clinic's legal name
-("Razón social") which can differ from the commercial ``name``. Adding
-it here keeps clinic identity centralised so every module reads from a
-single source of truth instead of duplicating the field.
+Fiscal documents need the clinic's legal name ("Razón social"), which
+can differ from the commercial ``name``. Adding it here keeps clinic
+identity centralised so every module reads from a single source of
+truth instead of duplicating the field.
 
 Revision ID: 0004
 Revises: 0003

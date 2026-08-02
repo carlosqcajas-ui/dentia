@@ -12,8 +12,7 @@ Adding a new mapper:
    source_id, source_system)``.
 2. Add it to :data:`MAPPERS` below.
 3. Ensure the target module is listed in
-   ``MigrationImportModule.manifest['depends']`` (unless integration is
-   runtime-tolerant like ``verifactu``).
+   ``MigrationImportModule.manifest['depends']``.
 """
 
 from __future__ import annotations

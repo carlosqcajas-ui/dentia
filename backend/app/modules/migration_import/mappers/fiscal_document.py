@@ -1,18 +1,17 @@
-"""Map ``fiscal_document`` → ``billing.Invoice`` (+ optional verifactu).
+"""Map ``fiscal_document`` → ``billing.Invoice``.
 
-This mapper is the only place in the importer that has a **runtime**
-dependency on another module (``verifactu``). Per the project's
-internationalisation goal — same module must work for PT/FR clinics
-where Verifactu doesn't apply — ``verifactu`` is intentionally absent
-from ``manifest.depends``.
+Source files may carry legal hash fields stamped by whatever certified
+invoicing system the clinic used before (Spanish Veri*Factu chains,
+Portuguese ATCUD, QR payloads…). Dentia ships no tax-authority
+integration, so those values are only ever **copied verbatim, never
+re-signed or validated**.
 
 Behaviour matrix:
 
-| verifactu loaded | operator opt-in | legal hashes |
-|------------------|-----------------|--------------|
-| no               | _ignored_       | dropped, ``verifactu.skipped`` warning |
-| yes              | False           | dropped, ``verifactu.opt_out`` warning |
-| yes              | True            | preserved verbatim (never re-signed)  |
+| operator opt-in | legal hashes |
+|-----------------|--------------|
+| False           | dropped, ``fiscal_document.legal_fields_dropped`` warning |
+| True            | preserved verbatim (never re-signed) |
 
 The opt-in flag lives on :attr:`ImportJob.import_fiscal_compliance`,
 set by the execute request body.
@@ -24,15 +23,13 @@ import logging
 from typing import Any
 from uuid import UUID, uuid4
 
-from app.core.plugins import module_registry
-
 from ..models import ImportWarning
 from .base import MapperContext
 
 logger = logging.getLogger(__name__)
 
 # Field names per DPMF CanonicalFiscalDocument that we preserve when
-# verifactu is loaded + opt-in is true.
+# the operator opts in.
 _LEGAL_FIELDS = (
     "legal_hash",
     "hash",
@@ -40,10 +37,6 @@ _LEGAL_FIELDS = (
     "atcud",
     "qr_code",
 )
-
-
-def _verifactu_active(ctx: MapperContext) -> bool:
-    return ctx.import_fiscal_compliance and module_registry.is_loaded("verifactu")
 
 
 class FiscalDocumentMapper:
@@ -100,7 +93,7 @@ class FiscalDocumentMapper:
             created_by=created_by,
         )
 
-        if _verifactu_active(ctx):
+        if ctx.import_fiscal_compliance:
             self._stamp_legal_fields(invoice, payload)
         else:
             await self._record_legal_skip(ctx, source_id, payload)
@@ -181,9 +174,9 @@ class FiscalDocumentMapper:
         """Copy whichever legal-hash fields exist on the Invoice model.
 
         We use ``setattr`` so the mapper survives schema drift on the
-        billing side — if a field disappears, we just skip it. The
-        verifactu module owns the canonical field names today; we
-        write the DPMF values verbatim regardless.
+        billing side — if a field disappears, we just skip it. The DPMF
+        values are written verbatim; Dentia never re-signs or validates
+        them.
         """
         for field in _LEGAL_FIELDS:
             value = payload.get(field)
@@ -197,18 +190,15 @@ class FiscalDocumentMapper:
         has_legal = any(payload.get(field) for field in _LEGAL_FIELDS)
         if not has_legal:
             return
-        code = (
-            "verifactu.opt_out" if module_registry.is_loaded("verifactu") else "verifactu.skipped"
-        )
         ctx.db.add(
             ImportWarning(
                 job_id=ctx.job_id,
                 entity_type="fiscal_document",
                 source_id=source_id,
                 severity="info",
-                code=code,
+                code="fiscal_document.legal_fields_dropped",
                 message=(
-                    "Datos legales Verifactu omitidos (módulo ausente o no solicitado). "
+                    "Datos legales del sistema de origen omitidos (no solicitados). "
                     "El documento se ha creado como factura comercial sin hashes legales."
                 ),
                 raw_data={f: payload.get(f) for f in _LEGAL_FIELDS if payload.get(f)},

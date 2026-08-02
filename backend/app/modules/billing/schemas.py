@@ -401,7 +401,7 @@ class BillingPartyUpdate(BaseModel):
     """Edit billing-party fields on an issued invoice.
 
     Allowed only when the country compliance hook says the invoice is in
-    a correctable state (e.g. a Verifactu record currently ``rejected``
+    a correctable state (e.g. a fiscal record currently ``rejected``
     so AEAT never registered the original data) — see workflow gate.
     """
 
@@ -507,7 +507,7 @@ class InvoiceListResponse(BaseModel):
 
     # Generic compliance summary — shape is country-keyed
     # ({"ES": {state, severity, error_message, ...}}) and entirely owned
-    # by compliance modules (verifactu et al.). Billing exposes it raw
+    # by compliance modules, if any is registered. Billing exposes it raw
     # so country-specific UI slots can render badges without a second
     # round-trip.
     compliance_data: dict | None = None

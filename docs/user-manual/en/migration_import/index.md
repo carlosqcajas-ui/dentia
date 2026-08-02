@@ -1,6 +1,6 @@
 ---
 module: migration_import
-last_verified_commit: HEAD
+last_verified_commit: 0eb12fe
 locale: en
 ---
 
@@ -34,9 +34,11 @@ to the regular `patients`, `payments`, `media`, … modules, not to
    hash and refuses anything corrupted or in a future format version.
 4. Review the **Preview**: entity counts, sample rows, warnings from
    the extractor, and the count of attached binaries expected.
-5. If your file contains Spanish legal data (Verifactu) and the
-   Verifactu module is installed, tick *"Import Verifactu legal data"*.
-   For PT / FR clinics this checkbox is hidden.
+5. If your file contains legal hashes from the previous system, tick
+   *"Import legal data from the previous system"*. They are stored
+   verbatim as a historical reference: Dentia never re-signs or
+   validates them. The checkbox is hidden when the file has no such
+   data.
 6. Click **Confirm and import**. Progress is shown live.
 7. The sync agent on the source machine uploads radiographs and
    documents in the background. They appear under each patient's

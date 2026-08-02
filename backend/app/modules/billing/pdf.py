@@ -180,13 +180,14 @@ class InvoicePDFService:
             </div>
             """
 
-        # Compliance QR (e.g. AEAT VERI*FACTU). Country-agnostic block:
-        # the country compliance hook supplies the base64 PNG via
-        # ``extra_pdf_data['compliance_qr_png_b64']``. Sized 32 mm and
-        # placed top-right per AEAT geometry; we render it as a sibling
-        # of ``.invoice-info`` so it does not push the layout.
-        qr_b64 = extra.get("compliance_qr_png_b64") or extra.get("verifactu_qr_png_b64")
-        qr_label = extra.get("compliance_qr_label") or "VERI*FACTU"
+        # Compliance QR. Country-agnostic block: a country compliance
+        # hook supplies the base64 PNG via
+        # ``extra_pdf_data['compliance_qr_png_b64']`` and its own label.
+        # Sized 32 mm and placed top-right; we render it as a sibling of
+        # ``.invoice-info`` so it does not push the layout. No compliance
+        # module ships today, so this block stays empty in practice.
+        qr_b64 = extra.get("compliance_qr_png_b64")
+        qr_label = extra.get("compliance_qr_label") or ""
         qr_block_html = ""
         if qr_b64:
             qr_block_html = f"""

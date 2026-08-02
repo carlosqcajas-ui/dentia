@@ -104,7 +104,7 @@ def _slug_from_page(rel_page: Path) -> str:
         recalls/index.vue          → list
         treatment-plans/[id].vue   → detail
         treatment-plans/new.vue    → create
-        settings/verifactu/queue.vue → queue
+        settings/invoice-series/index.vue → list
     """
     stem = rel_page.with_suffix("").name
     parent = rel_page.parent.name if rel_page.parent.parts else ""

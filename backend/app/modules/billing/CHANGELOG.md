@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- chore(billing): the `verifactu` (AEAT) and `accounting_export` modules
+  were removed from the repo. Billing keeps `BillingComplianceHook`
+  (`hooks.py`) as the extension seam, but **no compliance module ships**
+  — docstrings that used verifactu as the running example are now
+  generic. `pdf.py` drops the `verifactu_qr_png_b64` fallback key and no
+  longer hardcodes `VERI*FACTU` as the QR label; a hook must supply
+  `compliance_qr_label` itself. With no hook registered,
+  `billing_party_editable` always returns its `(False, ...)` default.
+
+- chore(billing): hide the module from the UI. `manifest.frontend.navigation`
+  is now empty, and the `invoice-series` settings page is no longer
+  registered in `frontend/app/plugins/settings.registry.ts`. This
+  deployment does not emit formal invoices — Bolivia issues fiscal
+  documents through SIN, which this module does not implement (its only
+  compliance hook is Spain's Veri*Factu, `uninstalled` here). Budgets +
+  payments carry the accounting axis. Routes and API stay mounted and
+  reachable by URL; only the entry points are gone. Note that gating via
+  `role_permissions` would *not* have worked — `admin` receives `*` from
+  the core `ROLE_PERMISSIONS` table regardless of the manifest.
+
 - fix(billing): `billing_tax_id` is no longer required to issue an
   invoice when no country compliance hook is registered for the
   clinic. This deployment issues plain invoices for internal

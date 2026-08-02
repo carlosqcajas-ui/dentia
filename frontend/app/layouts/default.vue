@@ -354,10 +354,11 @@ function isActive(to: string): boolean {
       <!-- Page content -->
       <main class="flex-1 p-3 sm:p-4 md:p-6 min-w-0 overflow-x-hidden">
         <!--
-          Global banner slot for compliance modules (Verifactu rejected
-          alerts, certificate expiry warnings, etc.). Modules register
-          their banners via `useModuleSlots`; the layout knows nothing
-          about them.
+          Global banner slot for cross-cutting alerts (compliance
+          rejections, certificate expiry warnings, etc.). Modules
+          register their banners via `useModuleSlots`; the layout knows
+          nothing about them. No module registers here today — the slot
+          stays as the extension seam.
         -->
         <ModuleSlot
           name="app.banners"

@@ -4,7 +4,6 @@
  *
  * Built-in modes (this module):
  * - budgets: View and manage patient budgets
- * - billing: View invoices and billing summary
  * - documents: Patient documents gallery
  *
  * Slot-driven modes (other modules):
@@ -44,7 +43,7 @@ const paymentsAvailable = computed(() =>
 )
 
 const availableModes = computed<AdministrationMode[]>(() => {
-  const modes: AdministrationMode[] = ['budgets', 'billing']
+  const modes: AdministrationMode[] = ['budgets']
   if (paymentsAvailable.value) modes.push('payments')
   modes.push('documents')
   return modes
@@ -276,11 +275,6 @@ const { format: formatCurrency } = useCurrency()
           </NuxtLink>
         </div>
       </UCard>
-    </div>
-
-    <!-- Billing Mode -->
-    <div v-else-if="currentMode === 'billing' && can(PERMISSIONS.billing.read)">
-      <PatientBillingSummary :patient-id="patientId" />
     </div>
 
     <!-- Payments Mode — contributed by the `payments` module via the
