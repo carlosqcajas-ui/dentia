@@ -156,6 +156,14 @@ async def test_receipt_shows_refund_and_net(
 
     from app.modules.payments.service import PaymentService
 
+    # The test session runs with ``expire_on_commit=False``, so the
+    # Payment added to the identity map above survives the commit with
+    # its (unloaded/empty) ``refunds`` collection, and the eager loader
+    # in ``get_for_receipt`` returns that same instance untouched.
+    # Production never hits this: each request gets a fresh session.
+    # Expire so the assertions below read what is actually in the DB.
+    db_session.expire_all()
+
     loaded = await PaymentService.get_for_receipt(db_session, payment.clinic_id, payment.id)
     clinic = await db_session.get(Clinic, payment.clinic_id)
     html = PaymentReceiptPDFService._build_html(loaded, clinic, loaded.patient, "es")
