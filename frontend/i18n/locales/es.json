@@ -2183,6 +2183,10 @@
         "autoCloseHelp": "Tras este número de días con presupuesto caducado y sin acción, el plan pasa a Cerrado (rango 7-180).",
         "save": "Guardar"
       },
+      "manualTotal": {
+        "label": "Presupuestos con total definido por el profesional",
+        "help": "Al generar un presupuesto desde un plan no se desglosa por líneas: se propone la suma de los tratamientos y el profesional ajusta el importe final. Puede corregirlo después, incluso una vez aceptado."
+      },
       "reminders": {
         "enabled": "Enviar recordatorios automáticos a los 7 y 14 días",
         "enabledHelp": "Cuando está activo, el sistema envía un email recordando al paciente que tiene un presupuesto pendiente. Si está desactivado, recepción persigue manualmente.",

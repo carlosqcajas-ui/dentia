@@ -1,5 +1,6 @@
 """Treatment plan module API endpoints."""
 
+from decimal import Decimal
 from typing import Annotated
 from uuid import UUID
 
@@ -15,6 +16,7 @@ from .schemas import (
     CompleteItemRequest,
     CompleteSessionRequest,
     ContactLogRequest,
+    GenerateBudgetRequest,
     GenerateBudgetResponse,
     LinkBudgetRequest,
     PipelineRow,
@@ -704,9 +706,23 @@ async def generate_budget_from_plan(
     ctx: Annotated[ClinicContext, Depends(get_clinic_context)],
     _: Annotated[None, Depends(require_permission("treatment_plan.plans.write"))],
     db: Annotated[AsyncSession, Depends(get_db)],
+    options: GenerateBudgetRequest | None = None,
 ) -> ApiResponse[GenerateBudgetResponse]:
-    """Generate a new budget from the treatment plan items."""
+    """Generate a new budget from the treatment plan items.
+
+    Two shapes, per ADR 0018:
+
+    - **Itemized** (default): one budget line per plan treatment, total
+      derived from the catalog prices.
+    - **Manual total**: no lines, the professional owns the figure. The
+      plan's prices seed it so it starts as a correction rather than a
+      blank field.
+
+    The mode comes from the clinic's ``budget_manual_total_default``
+    setting unless the caller overrides it in the body.
+    """
     from app.modules.budget.service import BudgetService
+    from app.modules.budget.workflow import _resolve_clinic_settings
 
     plan = await TreatmentPlanService.get(db, ctx.clinic_id, plan_id)
     if not plan:
@@ -745,7 +761,17 @@ async def generate_budget_from_plan(
             }
         )
 
-    if not budget_items:
+    opts = options or GenerateBudgetRequest()
+    if opts.is_manual_total is None:
+        clinic_settings = await _resolve_clinic_settings(db, ctx.clinic_id)
+        manual_total_mode = bool(clinic_settings.get("budget_manual_total_default", False))
+    else:
+        manual_total_mode = opts.is_manual_total
+
+    # Only the itemized shape needs priced catalog lines. A manual-total
+    # budget is perfectly valid over a plan whose treatments carry no
+    # catalog price — that is precisely the case it exists for.
+    if not budget_items and not manual_total_mode:
         raise HTTPException(
             status_code=400,
             detail="No catalog items found in plan to create budget",
@@ -754,16 +780,32 @@ async def generate_budget_from_plan(
     # Create budget via budget service
     from datetime import date
 
+    payload: dict = {
+        "patient_id": plan.patient_id,
+        "valid_from": date.today(),
+        "internal_notes": f"Generated from treatment plan {plan.plan_number}",
+    }
+    if manual_total_mode:
+        seeded_total = opts.total
+        if seeded_total is None:
+            seeded_total = sum(
+                (
+                    Decimal(str(i["unit_price"]))
+                    for i in budget_items
+                    if i.get("unit_price") is not None
+                ),
+                Decimal("0.00"),
+            )
+        payload["is_manual_total"] = True
+        payload["total"] = seeded_total
+    else:
+        payload["items"] = budget_items
+
     budget = await BudgetService.create_budget(
         db,
         ctx.clinic_id,
         ctx.user_id,
-        {
-            "patient_id": plan.patient_id,
-            "valid_from": date.today(),
-            "items": budget_items,
-            "internal_notes": f"Generated from treatment plan {plan.plan_number}",
-        },
+        payload,
     )
 
     # Link budget to plan
@@ -773,6 +815,7 @@ async def generate_budget_from_plan(
         data=GenerateBudgetResponse(
             budget_id=budget.id,
             budget_number=budget.budget_number,
+            is_manual_total=budget.is_manual_total,
         )
     )
 
