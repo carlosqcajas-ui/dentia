@@ -83,9 +83,18 @@ async def test_active_shape_for_admin(client: AsyncClient, db_session: AsyncSess
     assert billing["version"] == "0.1.0"
     assert billing["category"] == "official"
     assert billing["summary"] == "Invoices, payments, credit notes, PDF billing."
-    # Admin sees every nav item the billing manifest declares.
-    assert any(item["to"] == "/invoices" for item in billing["navigation"])
+    # Billing declares NO navigation: this deployment does not issue
+    # formal invoices, so the section is hidden. The pages and the API
+    # stay mounted and reachable by URL — only the entry points are
+    # gone. Asserted rather than skipped so a re-added nav entry fails
+    # here instead of silently reappearing in the sidebar.
+    assert billing["navigation"] == []
     assert "billing.read" in billing["permissions"]
+
+    # Admin still sees every nav item a manifest *does* declare — the
+    # point this assertion originally made through billing.
+    budget = next(m for m in payload if m["name"] == "budget")
+    assert any(item["to"] == "/budgets" for item in budget["navigation"])
 
 
 @pytest.mark.asyncio
