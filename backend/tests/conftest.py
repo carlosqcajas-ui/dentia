@@ -82,6 +82,7 @@ from app.modules.treatment_plan.models import (  # noqa: F401
     PlannedTreatmentItem,
     TreatmentPlan,
 )
+
 # Load modules manually for tests (normally done in lifespan)
 load_modules(app)
 
