@@ -15,6 +15,7 @@ related_endpoints:
   - GET /api/v1/payments/reports/summary
   - GET /api/v1/payments/reports/trends
   - GET /api/v1/payments/{payment_id}
+  - GET /api/v1/payments/{payment_id}/receipt.pdf
   - GET /api/v1/payments/{payment_id}/refunds
   - POST /api/v1/payments
   - POST /api/v1/payments/summary/by-budgets
@@ -29,7 +30,7 @@ related_permissions:
 related_paths:
   - backend/app/modules/payments/frontend/pages/payments/index.vue
   - backend/app/modules/payments/router.py
-last_verified_commit: b1b82f5
+last_verified_commit: e8b7c5c
 ---
 
 # Payment list
@@ -119,3 +120,21 @@ reallocate it, or issue a refund from the same screen.
 - **An invoice is not reflected as paid on its budget.** The invoice
   links to the payment from the `billing` module. Make sure the
   payment is allocated to the right budget.
+
+## Downloading the receipt
+
+Every row in the list has a receipt button. It produces a
+one-page PDF with the receipt number, date, patient, amount,
+payment method, and the breakdown of what it was applied to
+(budget or patient account), plus two signature lines.
+
+- **The number is sequential per clinic** (`REC-000001`,
+  `REC-000002`…) and is assigned when the payment is recorded, not
+  when it is printed. Two clinics keep independent sequences.
+- **A payment with refunds says so.** Fully refunded shows a red
+  banner; partially refunded shows an amber notice and the net
+  amount at the bottom. It never prints as clean proof of payment.
+- **It is not an invoice.** The footer states this explicitly: it
+  acknowledges receipt of the amount, nothing more.
+- The language follows your active UI locale (es / en / fr).
+

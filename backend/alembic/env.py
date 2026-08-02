@@ -96,6 +96,7 @@ from app.modules.payments.models import (  # noqa: F401
     Payment,
     PaymentAllocation,
     PaymentHistory,
+    PaymentReceiptCounter,
     Refund,
 )
 from app.modules.recalls.models import (  # noqa: F401

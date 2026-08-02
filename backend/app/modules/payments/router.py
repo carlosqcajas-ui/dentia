@@ -13,13 +13,15 @@ from decimal import Decimal
 from typing import Annotated, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth.dependencies import ClinicContext, get_clinic_context, require_permission
+from app.core.auth.models import Clinic
 from app.core.schemas import ApiResponse, PaginatedApiResponse
 from app.database import get_db
 
+from .pdf import PaymentReceiptPDFService
 from .schemas import (
     AgingBuckets,
     AllocationResponse,
@@ -144,6 +146,47 @@ async def get_payment(
     if payment is None:
         raise HTTPException(status_code=404, detail="Payment not found")
     return ApiResponse(data=PaymentResponse.from_model(payment))
+
+
+@router.get("/{payment_id}/receipt.pdf")
+async def download_receipt_pdf(
+    payment_id: UUID,
+    ctx: Annotated[ClinicContext, Depends(get_clinic_context)],
+    _: Annotated[None, Depends(require_permission("payments.record.read"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    locale: str = Query(default="es", pattern="^(es|en|fr)$"),
+) -> Response:
+    """Printable receipt for one payment.
+
+    Read-gated, not write-gated: handing a patient their receipt is a
+    front-desk read. Refunds are rendered on the document, so a reversed
+    payment can't be printed as clean proof of payment.
+    """
+    payment = await PaymentService.get_for_receipt(db, ctx.clinic_id, payment_id)
+    if payment is None:
+        raise HTTPException(status_code=404, detail="Payment not found")
+
+    clinic = await db.get(Clinic, ctx.clinic_id)
+
+    pdf_bytes = await PaymentReceiptPDFService.generate_pdf(
+        payment,
+        clinic,
+        payment.patient,
+        locale=locale,
+    )
+
+    reference = (
+        f"{payment.receipt_number:06d}"
+        if payment.receipt_number is not None
+        else str(payment.id)[:8]
+    )
+    filename = f"recibo_{reference}.pdf"
+
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @router.post("/{payment_id}/reallocate", response_model=ApiResponse[PaymentResponse])

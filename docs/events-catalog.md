@@ -619,21 +619,21 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.PAYMENT_ALLOCATED`
 - **Publishers:**
-  - `payments` — `backend/app/modules/payments/workflow.py:72`
+  - `payments` — `backend/app/modules/payments/workflow.py:100`
 - **Subscribers:** —
 
 ### `payment.recorded`
 
 - **Constant:** `EventType.PAYMENT_RECORDED`
 - **Publishers:**
-  - `payments` — `backend/app/modules/payments/workflow.py:168`
+  - `payments` — `backend/app/modules/payments/workflow.py:197`
 - **Subscribers:** —
 
 ### `payment.refunded`
 
 - **Constant:** `EventType.PAYMENT_REFUNDED`
 - **Publishers:**
-  - `payments` — `backend/app/modules/payments/workflow.py:329`
+  - `payments` — `backend/app/modules/payments/workflow.py:358`
 - **Subscribers:**
   - `billing`
 

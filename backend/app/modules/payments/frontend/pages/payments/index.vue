@@ -15,8 +15,9 @@ import { PERMISSIONS } from '~~/app/config/permissions'
 
 const { t, locale } = useI18n()
 const api = useApi()
+const toast = useToast()
 const { can } = usePermissions()
-const { refund } = usePayments()
+const { refund, downloadReceipt } = usePayments()
 
 interface PatientBrief {
   id: string
@@ -156,6 +157,21 @@ async function patientResolver(id: string) {
 
 // --- Modals -------------------------------------------------------------
 const showCreate = ref(false)
+// Receipt download — per-row spinner so a slow WeasyPrint render is
+// visible instead of looking like a dead button.
+const downloadingReceipt = ref<string | null>(null)
+
+async function handleDownloadReceipt(p: PaymentRecord) {
+  downloadingReceipt.value = p.id
+  try {
+    await downloadReceipt(p.id, locale.value)
+  } catch {
+    toast.add({ title: t('payments.receipt.downloadError'), color: 'error' })
+  } finally {
+    downloadingReceipt.value = null
+  }
+}
+
 const showRefund = ref(false)
 const refundTarget = ref<PaymentRecord | null>(null)
 
@@ -373,6 +389,16 @@ function formatDate(s: string | undefined): string {
               − {{ formatCurrency(p.refunded_total) }}
             </div>
           </div>
+          <UButton
+            variant="ghost"
+            color="neutral"
+            size="xs"
+            icon="i-lucide-receipt-text"
+            :loading="downloadingReceipt === p.id"
+            :aria-label="t('payments.receipt.download')"
+            :title="t('payments.receipt.download')"
+            @click="handleDownloadReceipt(p)"
+          />
           <UButton
             v-if="can(PERMISSIONS.payments.recordRefund) && Number(p.net_amount) > 0"
             variant="soft"

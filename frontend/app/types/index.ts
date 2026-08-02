@@ -1274,6 +1274,8 @@ export interface PaymentRecord {
   reference?: string
   notes?: string
   recorded_by: string
+  /** Sequential per clinic; null only for rows predating the numbering migration. */
+  receipt_number: number | null
   created_at: string
   updated_at: string
   allocations: PaymentAllocation[]

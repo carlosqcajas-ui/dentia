@@ -17,6 +17,7 @@ Routes mounted at `/api/v1/payments/`.
 | `/` | GET | `payments.record.read` |
 | `/` | POST | `payments.record.write` |
 | `/{id}` | GET | `payments.record.read` |
+| `/{id}/receipt.pdf` | GET | `payments.record.read` |
 | `/{id}/reallocate` | POST | `payments.record.write` |
 | `/{id}/refunds` | GET | `payments.record.read` |
 | `/{id}/refunds` | POST | `payments.record.refund` |
@@ -103,6 +104,23 @@ the public endpoints.
 
 ## Gotchas
 
+- **Receipt numbers come from a locked counter row.**
+  `PaymentReceiptCounter` holds one row per clinic and
+  `_next_receipt_number` takes it `FOR UPDATE`. Do **not** replace this
+  with `max(receipt_number) + 1` — two concurrent cobros would be handed
+  the same number, and that number is printed on paper the patient
+  keeps. Numbers are sequential but not gapless (a rolled-back tx burns
+  one); that is fine, this is an internal reference, not a fiscal series.
+- **The receipt is not an invoice.** No line items, no VAT, no fiscal
+  numbering, and the PDF footer says so. Don't grow it into one — that
+  is `billing`'s job, and billing is hidden in this deployment.
+- **The receipt renderer must never lazy-load.** Use
+  `PaymentService.get_for_receipt`, which eager-loads
+  `allocations.budget`, `refunds`, `recorder` and `patient`. Under an
+  async session a missed relationship raises `MissingGreenlet`.
+- **Refunds are rendered on the receipt** (banner + net line) so a
+  reversed cobro can't be printed as clean proof of payment. Keep that
+  if you restyle the document.
 - **No `is_voided` flag.** Total reverso is `Refund(amount=Payment.amount)`.
   Don't reintroduce the legacy flag — the report stack relies on
   Refund rows being the only adjustment vector.

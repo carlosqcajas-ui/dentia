@@ -119,6 +119,11 @@
         "other": "Autre"
       }
     },
+    "receipt": {
+      "download": "Télécharger le reçu",
+      "downloadError": "Impossible de générer le reçu",
+      "number": "Reçu n°"
+    },
     "ledger": {
       "title": "Grand livre du patient",
       "totalPaid": "Total payé",

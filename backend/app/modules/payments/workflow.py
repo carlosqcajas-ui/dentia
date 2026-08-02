@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.events import EventType, event_bus
 from app.modules.budget.models import Budget
 
-from .models import Payment, PaymentAllocation, PaymentHistory, Refund
+from .models import Payment, PaymentAllocation, PaymentHistory, PaymentReceiptCounter, Refund
 
 
 class PaymentWorkflowError(ValueError):
@@ -28,6 +28,34 @@ class PaymentWorkflowError(ValueError):
 
 def _now() -> datetime:
     return datetime.now(UTC)
+
+
+async def _next_receipt_number(db: AsyncSession, clinic_id: UUID) -> int:
+    """Hand out the next receipt number for ``clinic_id``.
+
+    Locks the clinic's counter row ``FOR UPDATE`` so two concurrent
+    cobros can't be handed the same number — it ends up printed on a
+    receipt the patient keeps. The lock is held until the caller's
+    transaction commits, which is the whole point.
+
+    Creates the counter row on first use, so a clinic that has never
+    taken a payment needs no seeding.
+    """
+    counter = (
+        await db.execute(
+            select(PaymentReceiptCounter)
+            .where(PaymentReceiptCounter.clinic_id == clinic_id)
+            .with_for_update()
+        )
+    ).scalar_one_or_none()
+
+    if counter is None:
+        counter = PaymentReceiptCounter(clinic_id=clinic_id, current_number=0)
+        db.add(counter)
+        await db.flush()
+
+    counter.current_number += 1
+    return counter.current_number
 
 
 async def _validate_allocations_for_clinic(
@@ -123,6 +151,7 @@ async def record_payment(
         reference=reference,
         notes=notes,
         recorded_by=recorded_by,
+        receipt_number=await _next_receipt_number(db, clinic_id),
     )
     db.add(payment)
     await db.flush()  # need payment.id for allocations

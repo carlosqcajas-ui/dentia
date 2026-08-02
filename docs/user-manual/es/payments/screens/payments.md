@@ -15,6 +15,7 @@ related_endpoints:
   - GET /api/v1/payments/reports/summary
   - GET /api/v1/payments/reports/trends
   - GET /api/v1/payments/{payment_id}
+  - GET /api/v1/payments/{payment_id}/receipt.pdf
   - GET /api/v1/payments/{payment_id}/refunds
   - POST /api/v1/payments
   - POST /api/v1/payments/summary/by-budgets
@@ -29,7 +30,7 @@ related_permissions:
 related_paths:
   - backend/app/modules/payments/frontend/pages/payments/index.vue
   - backend/app/modules/payments/router.py
-last_verified_commit: b1b82f5
+last_verified_commit: e8b7c5c
 ---
 
 # Listado de cobros
@@ -118,3 +119,22 @@ registra un cobro nuevo, se reasigna o se emite un reembolso.
 - **Una factura no aparece reflejada como saldada en el presupuesto.**
   La factura enlaza con el cobro desde el módulo `billing`. Asegúrate
   de que el cobro está asignado al presupuesto correcto.
+
+## Descargar el recibo
+
+Cada fila del listado tiene un botón de recibo. Genera un PDF de
+una página con el número de recibo, la fecha, el paciente, el
+importe, la forma de pago y el desglose de a qué se aplicó
+(presupuesto o *a cuenta*), más dos líneas de firma.
+
+- **El número es correlativo por clínica** (`REC-000001`, `REC-000002`…)
+  y se asigna al registrar el cobro, no al imprimirlo. Dos clínicas
+  llevan numeraciones independientes.
+- **Un cobro con devoluciones lo dice.** Si está devuelto por
+  completo, el recibo lleva una franja roja; si es parcial, un aviso
+  ámbar y el importe neto al pie. Nunca se imprime como un
+  comprobante limpio de pago.
+- **No es una factura.** El pie lo declara expresamente: acredita
+  la recepción del importe, nada más.
+- El idioma sale del que tengas activo en la interfaz (es / en / fr).
+

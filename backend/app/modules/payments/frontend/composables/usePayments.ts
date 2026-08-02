@@ -53,6 +53,8 @@ export interface FilterIdsResult {
 
 export function usePayments() {
   const api = useApi()
+  const auth = useAuth()
+  const config = useRuntimeConfig()
 
   const payments = useState<PaymentRecord[]>('payments:list', () => [])
   const total = useState<number>('payments:total', () => 0)
@@ -220,6 +222,37 @@ export function usePayments() {
     }
   }
 
+  /**
+   * Download the printable receipt for one payment.
+   *
+   * Goes through `fetch` rather than `useApi` because the response is a
+   * PDF blob, not JSON. Same shape as `useBudgets().downloadPDFAt`.
+   */
+  async function downloadReceipt(paymentId: string, locale: string = 'es'): Promise<void> {
+    const baseUrl = config.public.apiBaseUrl
+    const token = auth.accessToken.value
+
+    const response = await fetch(
+      `${baseUrl}/api/v1/payments/${paymentId}/receipt.pdf?locale=${locale}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    )
+    if (!response.ok) throw new Error('Failed to download receipt')
+
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+
+    const contentDisposition = response.headers.get('Content-Disposition')
+    const filenameMatch = contentDisposition?.match(/filename="?([^"]+)"?/)
+    link.download = filenameMatch?.[1] || `recibo_${paymentId}.pdf`
+
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  }
+
   async function fetchPatientIdsWithDebt(minDebt: number = 0.01): Promise<FilterIdsResult> {
     try {
       const resp = await api.get<ApiResponse<FilterIdsResult>>(
@@ -248,7 +281,8 @@ export function usePayments() {
     fetchBudgetSummaries,
     fetchPatientDebtSummaries,
     fetchBudgetIdsByPaymentStatus,
-    fetchPatientIdsWithDebt
+    fetchPatientIdsWithDebt,
+    downloadReceipt
   }
 }
 

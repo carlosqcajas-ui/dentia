@@ -68,6 +68,13 @@ class Payment(Base, TimestampMixin):
     reference: Mapped[str | None] = mapped_column(String(100), default=None)
     notes: Mapped[str | None] = mapped_column(Text, default=None)
 
+    # Sequential per clinic, assigned at creation from
+    # ``PaymentReceiptCounter``. Identifies the cobro on the printable
+    # receipt. NOT a fiscal number — Dentia issues no fiscal documents.
+    # Nullable only so the backfill migration can run before the
+    # constraint lands; every row written by the workflow has one.
+    receipt_number: Mapped[int | None] = mapped_column(default=None)
+
     recorded_by: Mapped[UUID] = mapped_column(ForeignKey("users.id"))
 
     # Relationships
@@ -89,6 +96,35 @@ class Payment(Base, TimestampMixin):
         Index("idx_payments_clinic_patient", "clinic_id", "patient_id"),
         Index("idx_payments_clinic_date", "clinic_id", "payment_date"),
         Index("idx_payments_clinic_method", "clinic_id", "method"),
+        # Two receipts must never share a number within a clinic. The
+        # counter row serializes issuance; this is the DB-level backstop.
+        UniqueConstraint("clinic_id", "receipt_number", name="uq_payments_clinic_receipt_number"),
+    )
+
+
+class PaymentReceiptCounter(Base, TimestampMixin):
+    """Per-clinic sequential counter behind ``Payment.receipt_number``.
+
+    One row per clinic, locked ``FOR UPDATE`` while a receipt number is
+    handed out — the same pattern billing uses for ``InvoiceSeries``.
+    Taking ``max(receipt_number) + 1`` instead would hand two concurrent
+    cobros the same number, and the number ends up on paper in a
+    patient's hand.
+
+    Numbers are sequential but **not** guaranteed gapless: a rolled-back
+    transaction consumes one. That is fine — this is an internal
+    reference, not a fiscal series.
+    """
+
+    __tablename__ = "payment_receipt_counters"
+
+    clinic_id: Mapped[UUID] = mapped_column(ForeignKey("clinics.id"), primary_key=True)
+    current_number: Mapped[int] = mapped_column(default=0)
+
+    clinic: Mapped["Clinic"] = relationship(foreign_keys=[clinic_id])
+
+    __table_args__ = (
+        CheckConstraint("current_number >= 0", name="ck_receipt_counter_non_negative"),
     )
 
 
