@@ -25,10 +25,8 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 | `budget.created` | `EventType.BUDGET_CREATED` | — | — |
 | `budget.expired` | `EventType.BUDGET_EXPIRED` | `budget` | `patient_timeline` |
 | `budget.rejected` | `EventType.BUDGET_REJECTED` | `budget` | `patient_timeline`, `treatment_plan` |
-| `budget.reminder_sent` | `EventType.BUDGET_REMINDER_SENT` | `budget` | `patient_timeline` |
 | `budget.renegotiated` | `EventType.BUDGET_RENEGOTIATED` | `budget` | `patient_timeline`, `treatment_plan` |
 | `budget.sent` | `EventType.BUDGET_SENT` | `budget` | `notifications`, `patient_timeline` |
-| `budget.viewed` | `EventType.BUDGET_VIEWED` | `budget` | `patient_timeline` |
 | `clinical_notes.administrative_created` | `EventType.CLINICAL_NOTE_ADMINISTRATIVE_CREATED` | `clinical_notes` | `patient_timeline` |
 | `clinical_notes.appointment_administrative_created` | `EventType.CLINICAL_NOTE_APPOINTMENT_ADMINISTRATIVE_CREATED` | `clinical_notes` | — |
 | `clinical_notes.appointment_clinical_created` | `EventType.CLINICAL_NOTE_APPOINTMENT_CLINICAL_CREATED` | `clinical_notes` | — |
@@ -205,7 +203,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.BUDGET_ACCEPTED`
 - **Publishers:**
-  - `budget` — `backend/app/modules/budget/workflow.py:298`
+  - `budget` — `backend/app/modules/budget/workflow.py:261`
 - **Subscribers:**
   - `notifications`
   - `patient_timeline`
@@ -221,7 +219,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.BUDGET_EXPIRED`
 - **Publishers:**
-  - `budget` — `backend/app/modules/budget/workflow.py:472`
+  - `budget` — `backend/app/modules/budget/workflow.py:435`
 - **Subscribers:**
   - `patient_timeline`
 
@@ -229,24 +227,16 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.BUDGET_REJECTED`
 - **Publishers:**
-  - `budget` — `backend/app/modules/budget/workflow.py:375`
+  - `budget` — `backend/app/modules/budget/workflow.py:338`
 - **Subscribers:**
   - `patient_timeline`
   - `treatment_plan`
-
-### `budget.reminder_sent`
-
-- **Constant:** `EventType.BUDGET_REMINDER_SENT`
-- **Publishers:**
-  - `budget` — `backend/app/modules/budget/workflow.py:598`
-- **Subscribers:**
-  - `patient_timeline`
 
 ### `budget.renegotiated`
 
 - **Constant:** `EventType.BUDGET_RENEGOTIATED`
 - **Publishers:**
-  - `budget` — `backend/app/modules/budget/workflow.py:543`
+  - `budget` — `backend/app/modules/budget/workflow.py:506`
 - **Subscribers:**
   - `patient_timeline`
   - `treatment_plan`
@@ -255,17 +245,9 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.BUDGET_SENT`
 - **Publishers:**
-  - `budget` — `backend/app/modules/budget/workflow.py:160`
+  - `budget` — `backend/app/modules/budget/workflow.py:123`
 - **Subscribers:**
   - `notifications`
-  - `patient_timeline`
-
-### `budget.viewed`
-
-- **Constant:** `EventType.BUDGET_VIEWED`
-- **Publishers:**
-  - `budget` — `backend/app/modules/budget/workflow.py:571`
-- **Subscribers:**
   - `patient_timeline`
 
 ### `clinical_notes.administrative_created`
@@ -378,7 +360,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.EMAIL_FAILED`
 - **Publishers:**
-  - `notifications` — `backend/app/modules/notifications/gateway.py:562`
+  - `notifications` — `backend/app/modules/notifications/gateway.py:564`
 - **Subscribers:**
   - `patient_timeline`
 
@@ -386,7 +368,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.EMAIL_SENT`
 - **Publishers:**
-  - `notifications` — `backend/app/modules/notifications/gateway.py:560`
+  - `notifications` — `backend/app/modules/notifications/gateway.py:562`
 - **Subscribers:**
   - `patient_timeline`
 
@@ -406,7 +388,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.INVOICE_ISSUED`
 - **Publishers:**
-  - `billing` — `backend/app/modules/billing/workflow.py:277`
+  - `billing` — `backend/app/modules/billing/workflow.py:271`
 - **Subscribers:**
   - `patient_timeline`
 
@@ -414,7 +396,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.INVOICE_PAID`
 - **Publishers:**
-  - `billing` — `backend/app/modules/billing/workflow.py:461`
+  - `billing` — `backend/app/modules/billing/workflow.py:455`
 - **Subscribers:**
   - `patient_timeline`
 
@@ -571,21 +553,21 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.ODONTOGRAM_TREATMENT_ADDED`
 - **Publishers:**
-  - `odontogram` — `backend/app/modules/odontogram/service.py:727`
+  - `odontogram` — `backend/app/modules/odontogram/service.py:732`
 - **Subscribers:** —
 
 ### `odontogram.treatment.deleted`
 
 - **Constant:** `EventType.ODONTOGRAM_TREATMENT_DELETED`
 - **Publishers:**
-  - `odontogram` — `backend/app/modules/odontogram/service.py:883`
+  - `odontogram` — `backend/app/modules/odontogram/service.py:888`
 - **Subscribers:** —
 
 ### `odontogram.treatment.performed`
 
 - **Constant:** `EventType.ODONTOGRAM_TREATMENT_PERFORMED`
 - **Publishers:**
-  - `odontogram` — `backend/app/modules/odontogram/service.py:827`
+  - `odontogram` — `backend/app/modules/odontogram/service.py:832`
 - **Subscribers:**
   - `budget`
   - `patient_timeline`
@@ -597,7 +579,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.ODONTOGRAM_TREATMENT_STATUS_CHANGED`
 - **Publishers:**
-  - `odontogram` — `backend/app/modules/odontogram/service.py:771`
+  - `odontogram` — `backend/app/modules/odontogram/service.py:776`
 - **Subscribers:** —
 
 ### `patient.archived`
@@ -718,7 +700,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.TREATMENT_PLAN_BUDGET_SYNC_REQUESTED`
 - **Publishers:**
-  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:1260`
+  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:1266`
 - **Subscribers:**
   - `budget`
 
@@ -726,7 +708,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.TREATMENT_PLAN_CLOSED`
 - **Publishers:**
-  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:1691`
+  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:1696`
 - **Subscribers:**
   - `patient_timeline`
 
@@ -734,7 +716,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.TREATMENT_PLAN_CONFIRMED`
 - **Publishers:**
-  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:1598`
+  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:1603`
 - **Subscribers:**
   - `patient_timeline`
 
@@ -750,7 +732,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.TREATMENT_PLAN_ITEM_COMPLETED_WITHOUT_NOTE`
 - **Publishers:**
-  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:970`
+  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:975`
 - **Subscribers:**
   - `patient_timeline`
 
@@ -758,7 +740,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.TREATMENT_PLAN_ITEM_SESSION_COMPLETED`
 - **Publishers:**
-  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:874`
+  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:879`
 - **Subscribers:**
   - `payments`
 
@@ -766,14 +748,14 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.TREATMENT_PLAN_ITEMS_REORDERED`
 - **Publishers:**
-  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:741`
+  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:746`
 - **Subscribers:** —
 
 ### `treatment_plan.reactivated`
 
 - **Constant:** `EventType.TREATMENT_PLAN_REACTIVATED`
 - **Publishers:**
-  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:1737`
+  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:1742`
 - **Subscribers:**
   - `patient_timeline`
 
@@ -797,7 +779,7 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 - **Constant:** `EventType.TREATMENT_PLAN_TREATMENT_COMPLETED`
 - **Publishers:**
   - `treatment_plan` — `backend/app/modules/treatment_plan/events.py:87`
-  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:955`
+  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:960`
 - **Subscribers:**
   - `patient_timeline`
   - `recalls`
@@ -806,7 +788,6 @@ Maintained by `backend/scripts/generate_catalogs.py`.
 
 - **Constant:** `EventType.TREATMENT_PLAN_TREATMENT_REMOVED`
 - **Publishers:**
-  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:805`
+  - `treatment_plan` — `backend/app/modules/treatment_plan/service.py:810`
 - **Subscribers:**
   - `budget`
-

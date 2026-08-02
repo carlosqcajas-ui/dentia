@@ -2,7 +2,7 @@
 
 # Modules catalog
 
-Single source of truth for every module loaded into the running DentalPin instance. Generated from module manifests, `get_permissions()`, `get_event_handlers()`, and grep of `event_bus.publish` callsites.
+Single source of truth for every module loaded into the running Dentia instance. Generated from module manifests, `get_permissions()`, `get_event_handlers()`, and grep of `event_bus.publish` callsites.
 
 Maintained by `backend/scripts/generate_catalogs.py`. CI fails if a manifest changes without re-generation.
 
@@ -12,7 +12,7 @@ Maintained by `backend/scripts/generate_catalogs.py`. CI fails if a manifest cha
 |--------|---------|----------|---------|---------|-----------|-------------|-------|----------|----------|
 | `agenda` | 0.4.0 | official | patients, catalog, odontogram | auto | no | 4 | 11 | 0 | yes |
 | `billing` | 0.1.0 | official | patients, catalog, budget, payments | auto | no | 3 | 3 | 1 | yes |
-| `budget` | 0.1.0 | official | patients, catalog, odontogram | auto | no | 5 | 7 | 4 | yes |
+| `budget` | 0.1.0 | official | patients, catalog, odontogram | auto | no | 5 | 5 | 4 | yes |
 | `catalog` | 0.1.0 | official | — | auto | no | 3 | 0 | 0 | yes |
 | `clinical_notes` | 0.2.0 | official | patients, odontogram, treatment_plan, media, agenda | auto | no | 2 | 6 | 0 | yes |
 | `copilot` | 0.1.0 | official | — | auto | yes | 5 | 3 | 1 | yes |
@@ -20,7 +20,7 @@ Maintained by `backend/scripts/generate_catalogs.py`. CI fails if a manifest cha
 | `migration_import` | 0.1.0 | official | patients, patients_clinical, clinical_notes, agenda, schedules, recalls, catalog, budget, odontogram, treatment_plan, billing, payments, media | manual | yes | 4 | 5 | 0 | yes |
 | `notifications` | 0.1.0 | official | patients, agenda, budget, billing, catalog | auto | no | 8 | 7 | 6 | yes |
 | `odontogram` | 0.3.0 | official | patients, catalog | auto | no | 4 | 7 | 0 | yes |
-| `patient_timeline` | 0.1.0 | official | patients | auto | no | 1 | 0 | 35 | yes |
+| `patient_timeline` | 0.1.0 | official | patients | auto | no | 1 | 0 | 33 | yes |
 | `patients` | 0.1.0 | official | — | auto | no | 2 | 3 | 0 | yes |
 | `patients_clinical` | 0.1.0 | official | patients | auto | no | 4 | 1 | 0 | yes |
 | `payments` | 0.1.0 | official | patients, budget | auto | no | 4 | 3 | 2 | yes |
@@ -37,7 +37,7 @@ Maintained by `backend/scripts/generate_catalogs.py`. CI fails if a manifest cha
 
 Appointments, scheduling, cabinets.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -67,7 +67,7 @@ Appointments, scheduling, cabinets.
 
 Invoices, payments, credit notes, PDF billing.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -89,7 +89,7 @@ Invoices, payments, credit notes, PDF billing.
 
 Dental treatment quotes, versioning, signatures.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -105,10 +105,8 @@ Dental treatment quotes, versioning, signatures.
   - `budget.accepted`
   - `budget.expired`
   - `budget.rejected`
-  - `budget.reminder_sent`
   - `budget.renegotiated`
   - `budget.sent`
-  - `budget.viewed`
 - **Events consumed:**
   - `odontogram.treatment.performed`
   - `treatment_plan.budget_sync_requested`
@@ -120,7 +118,7 @@ Dental treatment quotes, versioning, signatures.
 
 Treatment catalog, categories, VAT types.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -138,7 +136,7 @@ Treatment catalog, categories, VAT types.
 
 Polymorphic clinical notes (administrative, diagnosis, treatment, treatment plan) with author. Attachments delegated to media.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -159,9 +157,9 @@ Polymorphic clinical notes (administrative, diagnosis, treatment, treatment plan
 
 ### `copilot` — v0.1.0
 
-Conversational AI agent over DentalPin, scoped to the caller's permissions.
+Conversational AI agent over Dentia, scoped to the caller's permissions.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=True
@@ -185,7 +183,7 @@ Conversational AI agent over DentalPin, scoped to the caller's permissions.
 
 Patient documents, photos, X-rays + polymorphic attachments.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -212,7 +210,7 @@ Patient documents, photos, X-rays + polymorphic attachments.
 
 Importa datos de pacientes, citas, presupuestos, pagos y documentos desde un archivo DPMF generado por dental-bridge.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=False · removable=True
@@ -236,7 +234,7 @@ Importa datos de pacientes, citas, presupuestos, pagos y documentos desde un arc
 
 Email templates, preferences, SMTP, event-driven sending.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -272,7 +270,7 @@ Email templates, preferences, SMTP, event-driven sending.
 
 Dental charting, tooth state, clinical treatments.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -298,7 +296,7 @@ Dental charting, tooth state, clinical treatments.
 
 Patient timeline — unified activity log.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -319,10 +317,8 @@ Patient timeline — unified activity log.
   - `budget.accepted`
   - `budget.expired`
   - `budget.rejected`
-  - `budget.reminder_sent`
   - `budget.renegotiated`
   - `budget.sent`
-  - `budget.viewed`
   - `clinical_notes.administrative_created`
   - `clinical_notes.diagnosis_created`
   - `clinical_notes.plan_created`
@@ -349,7 +345,7 @@ Patient timeline — unified activity log.
 
 Patient identity: name, contact, demographics, status.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -369,7 +365,7 @@ Patient identity: name, contact, demographics, status.
 
 Normalized medical history, allergies, medications, emergency contacts.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -389,7 +385,7 @@ Normalized medical history, allergies, medications, emergency contacts.
 
 Patient-centric collections, allocations to budgets / on-account, refunds, patient ledger, and dental payment reports.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -413,7 +409,7 @@ Patient-centric collections, allocations to budgets / on-account, refunds, patie
 
 SEPA periodontal charting — snapshots, probing sites, BoP/PI/CAL indices.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=False · removable=True
@@ -433,7 +429,7 @@ SEPA periodontal charting — snapshots, probing sites, BoP/PI/CAL indices.
 
 Patient recalls: schedule call-backs, work the monthly call list, log attempts, auto-link booked appointments.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=True
@@ -460,7 +456,7 @@ Patient recalls: schedule call-backs, work the monthly call list, log attempts, 
 
 Cross-module reporting: billing, budgets, scheduling.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -478,7 +474,7 @@ Cross-module reporting: billing, budgets, scheduling.
 
 Clinic + professional operating hours, overrides, availability, and occupancy analytics.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=True
@@ -504,7 +500,7 @@ Clinic + professional operating hours, overrides, availability, and occupancy an
 
 Patient treatment plans with budget + odontogram sync.
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** official
 - **Install policy:** installable=True · auto_install=True · removable=False
@@ -541,7 +537,7 @@ Patient treatment plans with budget + odontogram sync.
 
 WhatsApp para notifications vía Kapso (Meta Cloud API).
 
-- **Author:** DentalPin Core Team
+- **Author:** Dentia Core Team
 - **License:** BSL-1.1
 - **Category:** community
 - **Install policy:** installable=True · auto_install=False · removable=True
