@@ -489,6 +489,12 @@ class BudgetService:
 
         budget_number = await BudgetNumberService.generate_number(db, clinic_id)
 
+        # Clinics that don't itemize (ADR 0018) get a manual-total budget
+        # here instead of a line-by-line one. The plan's prices still
+        # decide the *starting* figure — the professional corrects it on
+        # the budget screen rather than facing a blank field.
+        manual_total_mode = bool(clinic_settings.get("budget_manual_total_default", False))
+
         budget = Budget(
             clinic_id=clinic_id,
             patient_id=UUID(patient_id_raw),
@@ -500,9 +506,36 @@ class BudgetService:
             created_by=user_id,
             plan_number_snapshot=plan_number,
             plan_status_snapshot="pending",
+            is_manual_total=manual_total_mode,
         )
         db.add(budget)
         await db.flush()
+
+        if manual_total_mode:
+            seed_total = sum(
+                (
+                    Decimal(str(i["unit_price"]))
+                    for i in (snapshot.get("items") or [])
+                    if i.get("unit_price") is not None
+                ),
+                Decimal("0.00"),
+            )
+            budget.subtotal = seed_total
+            budget.total = seed_total
+            await BudgetHistoryService.add_entry(
+                db,
+                clinic_id=clinic_id,
+                budget_id=budget.id,
+                action="created",
+                changed_by=user_id,
+                new_state={
+                    "status": "draft",
+                    "from_plan_id": plan_id_raw,
+                    "is_manual_total": True,
+                    "seeded_total": str(seed_total),
+                },
+            )
+            return budget
 
         for item_snapshot in snapshot.get("items") or []:
             treatment_id_raw = item_snapshot.get("treatment_id")

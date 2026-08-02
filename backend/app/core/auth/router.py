@@ -871,6 +871,11 @@ class _BudgetSettingsPatch(BaseModel):
     plan_auto_close_days_after_expiry: int | None = Field(default=None, ge=7, le=180)
     budget_reminders_enabled: bool | None = None
     budget_public_auth_disabled: bool | None = None
+    # When set, budgets derived from a treatment plan are created in
+    # manual-total mode (ADR 0018): no line items, the professional
+    # types the figure. The plan's computed sum is used as the starting
+    # value so it is a correction, not a blank field.
+    budget_manual_total_default: bool | None = None
 
 
 class _BudgetSettingsResponse(BaseModel):
@@ -878,6 +883,7 @@ class _BudgetSettingsResponse(BaseModel):
     plan_auto_close_days_after_expiry: int = 30
     budget_reminders_enabled: bool = False
     budget_public_auth_disabled: bool = False
+    budget_manual_total_default: bool = False
 
 
 def _read_budget_settings(raw: dict | None) -> _BudgetSettingsResponse:
@@ -887,6 +893,7 @@ def _read_budget_settings(raw: dict | None) -> _BudgetSettingsResponse:
         plan_auto_close_days_after_expiry=int(raw.get("plan_auto_close_days_after_expiry", 30)),
         budget_reminders_enabled=bool(raw.get("budget_reminders_enabled", False)),
         budget_public_auth_disabled=bool(raw.get("budget_public_auth_disabled", False)),
+        budget_manual_total_default=bool(raw.get("budget_manual_total_default", False)),
     )
 
 

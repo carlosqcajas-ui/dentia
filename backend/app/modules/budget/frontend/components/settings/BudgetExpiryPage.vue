@@ -4,6 +4,7 @@ const { settings, loading, saving, fetch, update } = useBudgetSettings()
 
 const validityDays = ref(30)
 const autoCloseDays = ref(30)
+const manualTotalDefault = ref(false)
 
 watch(
   settings,
@@ -11,6 +12,7 @@ watch(
     if (s) {
       validityDays.value = s.budget_expiry_days
       autoCloseDays.value = s.plan_auto_close_days_after_expiry
+      manualTotalDefault.value = s.budget_manual_total_default
     }
   }
 )
@@ -21,6 +23,7 @@ async function save() {
   await update({
     budget_expiry_days: validityDays.value,
     plan_auto_close_days_after_expiry: autoCloseDays.value,
+    budget_manual_total_default: manualTotalDefault.value,
   })
 }
 </script>
@@ -33,6 +36,12 @@ async function save() {
       </UFormField>
       <UFormField :label="t('budget.settings.expiry.autoCloseDays')" :hint="t('budget.settings.expiry.autoCloseHelp')">
         <UInput v-model.number="autoCloseDays" type="number" :min="7" :max="180" />
+      </UFormField>
+      <UFormField :hint="t('budget.settings.manualTotal.help')">
+        <UCheckbox
+          v-model="manualTotalDefault"
+          :label="t('budget.settings.manualTotal.label')"
+        />
       </UFormField>
     </div>
     <template #footer>

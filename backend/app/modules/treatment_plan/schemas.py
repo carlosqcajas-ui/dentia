@@ -317,9 +317,23 @@ class LinkBudgetRequest(BaseModel):
     budget_id: UUID
 
 
+class GenerateBudgetRequest(BaseModel):
+    """Options for turning a plan into a budget.
+
+    Both fields are optional. Left unset, the clinic's
+    ``budget_manual_total_default`` setting decides the mode, and a
+    manual total is seeded from the plan's own prices — so the caller
+    only sends these to override the clinic policy for one budget.
+    """
+
+    is_manual_total: bool | None = None
+    total: Decimal | None = Field(default=None, ge=0)
+
+
 class GenerateBudgetResponse(BaseModel):
     budget_id: UUID
     budget_number: str
+    is_manual_total: bool = False
 
 
 # Media attachment schemas live in the ``media`` module since issue #55 —

@@ -2160,6 +2160,10 @@
         "autoCloseHelp": "Plans with an expired quote and no action for this many days move to Closed (range 7-180).",
         "save": "Save"
       },
+      "manualTotal": {
+        "label": "Budgets with a total set by the professional",
+        "help": "When a budget is generated from a plan it is not broken down into lines: the sum of the treatments is proposed and the professional adjusts the final figure. It stays editable afterwards, even once accepted."
+      },
       "reminders": {
         "enabled": "Send automatic reminders at 7d and 14d",
         "enabledHelp": "When on, the system emails the patient about pending quotes. When off, reception follows up manually.",
@@ -2416,7 +2420,7 @@
       "void": "Void payment",
       "amount": "Amount",
       "method": "Payment method",
-    "date": "Date",
+      "date": "Date",
       "reference": "Reference",
       "notes": "Notes",
       "noPayments": "No payments recorded",

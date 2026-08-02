@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- feat(manual-total): plan-derived budgets can now be manual-total. New
+  clinic setting `budget_manual_total_default` (in `clinic.settings`,
+  editable from Ajustes → Presupuestos). When on,
+  `create_from_plan_snapshot` builds a budget with no line items and
+  seeds `total` with the sum of the plan's prices, so the professional
+  corrects a figure instead of facing a blank field. Off by default —
+  existing clinics keep itemized budgets.
+- fix(events): the three plan→budget handlers
+  (`_on_treatment_added_to_plan`, `_on_treatment_removed_from_plan`,
+  `_on_sync_requested`) now bail out on `is_manual_total` budgets. They
+  only checked `status != "draft"`, so mirroring plan items into a
+  manual-total budget created orphan `BudgetItem` rows that no total
+  reflected (`_recalculate_totals` already no-ops for those). Latent
+  before; reachable now that plans can produce manual-total budgets.
+
 - **BREAKING (feat/simplify):** removed the patient-facing public
   budget link entirely (`docs/adr/0019`, supersedes `0006`). Dropped
   `public_router.py`, the `budgets` public-link columns and

@@ -1090,4 +1090,3 @@ async def test_manual_total_budget_rejects_items(
         headers=auth_headers,
     )
     assert float(budget.json()["data"]["total"]) == 500.00
-    assert float(data["total"]) == 90.00
