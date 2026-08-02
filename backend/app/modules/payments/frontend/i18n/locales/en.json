@@ -119,6 +119,11 @@
         "other": "Other"
       }
     },
+    "receipt": {
+      "download": "Download receipt",
+      "downloadError": "Could not generate the receipt",
+      "number": "Receipt no."
+    },
     "ledger": {
       "title": "Patient ledger",
       "totalPaid": "Total paid",

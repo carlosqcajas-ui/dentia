@@ -119,6 +119,11 @@
         "other": "Otro"
       }
     },
+    "receipt": {
+      "download": "Descargar recibo",
+      "downloadError": "No se pudo generar el recibo",
+      "number": "Recibo n.º"
+    },
     "ledger": {
       "title": "Estado de cuenta",
       "totalPaid": "Total cobrado",

@@ -115,6 +115,9 @@ class PaymentResponse(BaseModel):
     reference: str | None = None
     notes: str | None = None
     recorded_by: UUID
+    # Sequential per clinic; drives the printable receipt reference.
+    # None only for rows predating the numbering migration.
+    receipt_number: int | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -140,6 +143,7 @@ class PaymentResponse(BaseModel):
             reference=payment.reference,
             notes=payment.notes,
             recorded_by=payment.recorded_by,
+            receipt_number=payment.receipt_number,
             created_at=payment.created_at,
             updated_at=payment.updated_at,
             allocations=[AllocationResponse.from_model(a) for a in payment.allocations],

@@ -149,6 +149,29 @@ class PaymentService:
         )
         return result.scalars().unique().one_or_none()
 
+    @staticmethod
+    async def get_for_receipt(
+        db: AsyncSession, clinic_id: UUID, payment_id: UUID
+    ) -> Payment | None:
+        """Load a payment with everything the receipt PDF touches.
+
+        Same as :meth:`get` plus ``allocations.budget`` — the receipt
+        prints the budget number next to each allocation. The renderer
+        must never trigger lazy IO: under an async session that raises
+        ``MissingGreenlet`` rather than silently doing a query.
+        """
+        result = await db.execute(
+            select(Payment)
+            .where(Payment.id == payment_id, Payment.clinic_id == clinic_id)
+            .options(
+                selectinload(Payment.allocations).joinedload(PaymentAllocation.budget),
+                selectinload(Payment.refunds),
+                joinedload(Payment.recorder),
+                joinedload(Payment.patient),
+            )
+        )
+        return result.scalars().unique().one_or_none()
+
 
 class PaymentReadService:
     """Narrow public surface other modules read.

@@ -27,6 +27,7 @@ from .models import (
     Payment,
     PaymentAllocation,
     PaymentHistory,
+    PaymentReceiptCounter,
     Refund,
 )
 from .router import router
@@ -71,7 +72,14 @@ class PaymentsModule(BaseModule):
     }
 
     def get_models(self) -> list:
-        return [Payment, PaymentAllocation, Refund, PatientEarnedEntry, PaymentHistory]
+        return [
+            Payment,
+            PaymentAllocation,
+            Refund,
+            PatientEarnedEntry,
+            PaymentHistory,
+            PaymentReceiptCounter,
+        ]
 
     def get_router(self) -> APIRouter:
         return router

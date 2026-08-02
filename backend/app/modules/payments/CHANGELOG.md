@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+- feat(receipts): printable payment receipt.
+  `GET /api/v1/payments/{id}/receipt.pdf` (`payments.record.read`,
+  `locale=es|en|fr`) renders a one-page PDF: receipt number, date,
+  patient, amount, method, allocation breakdown, signature lines, and a
+  footer stating it is not an invoice. Refunds render as a banner plus a
+  net line so a reversed cobro is never clean proof of payment.
+- feat(receipts): `Payment.receipt_number`, sequential per clinic, with
+  the new `payment_receipt_counters` table handing numbers out under a
+  `FOR UPDATE` row lock (migration `pay_0004`). Existing rows are
+  backfilled per clinic in `payment_date, created_at, id` order and each
+  clinic's counter seeded past its highest number. Exposed on
+  `PaymentResponse.receipt_number`.
+- feat(service): `PaymentService.get_for_receipt` — same as `get` plus
+  `allocations.budget`, so the renderer never triggers lazy IO.
+- refactor(pdf): new `app/core/pdf.py` holds the WeasyPrint call,
+  address flattening and language→money-locale mapping that
+  `budget/pdf.py` and `billing/pdf.py` had each copied. The receipt uses
+  it; migrating the two existing generators is deliberately out of scope
+  and left as a follow-up.
+
 - perf: drop the redundant page-level `auth` middleware from
   `pages/payments/index.vue` and `pages/reports/payments/index.vue` —
   the global `auth.global.ts` middleware already runs `auth.init()`
