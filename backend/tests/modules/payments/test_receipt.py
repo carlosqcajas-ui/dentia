@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime
 from decimal import Decimal
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 import pytest
 from httpx import AsyncClient
@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth.models import Clinic, ClinicMembership
 from app.modules.patients.models import Patient
-from app.modules.payments.models import Payment, Refund
+from app.modules.payments.models import Refund
 from app.modules.payments.pdf import PaymentReceiptPDFService, _fmt_receipt_number
 
 
@@ -139,33 +139,38 @@ async def test_receipt_shows_refund_and_net(
     setup = await _setup_clinic(db_session, auth_headers, client)
     created = await _create_payment(client, auth_headers, setup, "200.00")
 
-    payment = await db_session.get(Payment, created["id"])
+    # Deliberately do NOT load the Payment through the ORM here. Putting
+    # it in this session's identity map makes `get_for_receipt` hand back
+    # that same instance with its already-resolved (empty) `refunds`
+    # collection, because the fixture builds sessions with
+    # `expire_on_commit=False`. Expiring instead of avoiding it just moves
+    # the problem: reading `payment.clinic_id` afterwards triggers a
+    # synchronous lazy reload, which raises MissingGreenlet under an async
+    # session. Working from the plain identifiers sidesteps both.
+    clinic_id = UUID(setup["clinic_id"])
+    payment_id = UUID(created["id"])
+
     db_session.add(
         Refund(
             id=uuid4(),
-            clinic_id=payment.clinic_id,
-            payment_id=payment.id,
+            clinic_id=clinic_id,
+            payment_id=payment_id,
             amount=Decimal("200.00"),
             method="cash",
             reason_code="duplicate",
             refunded_at=datetime.now(UTC),
-            refunded_by=setup["user_id"],
+            refunded_by=UUID(setup["user_id"]),
         )
     )
     await db_session.commit()
 
     from app.modules.payments.service import PaymentService
 
-    # The test session runs with ``expire_on_commit=False``, so the
-    # Payment added to the identity map above survives the commit with
-    # its (unloaded/empty) ``refunds`` collection, and the eager loader
-    # in ``get_for_receipt`` returns that same instance untouched.
-    # Production never hits this: each request gets a fresh session.
-    # Expire so the assertions below read what is actually in the DB.
-    db_session.expire_all()
+    loaded = await PaymentService.get_for_receipt(db_session, clinic_id, payment_id)
+    assert loaded is not None
+    assert len(loaded.refunds) == 1, "refund must be visible to the renderer"
 
-    loaded = await PaymentService.get_for_receipt(db_session, payment.clinic_id, payment.id)
-    clinic = await db_session.get(Clinic, payment.clinic_id)
+    clinic = await db_session.get(Clinic, clinic_id)
     html = PaymentReceiptPDFService._build_html(loaded, clinic, loaded.patient, "es")
 
     assert "PAGO DEVUELTO EN SU TOTALIDAD" in html
