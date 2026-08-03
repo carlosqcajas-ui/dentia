@@ -436,6 +436,118 @@ class BudgetService:
         return budget
 
     @staticmethod
+    async def _build_included_items(db: AsyncSession, item_snapshots: list[dict]) -> list[dict]:
+        """Price-free description of what a manual-total budget covers.
+
+        Resolves localized catalog names once, here, and stores them —
+        the rendered document must not depend on the catalog row still
+        existing (or still being called the same) months later. Falls
+        back to the snapshot's own ``description`` when an item has no
+        catalog link.
+
+        **Never include an amount.** The point of manual-total mode is
+        that the only figure on the document is the professional's.
+        """
+        from app.modules.catalog.models import TreatmentCatalogItem
+
+        catalog_ids = {
+            UUID(i["catalog_item_id"]) for i in item_snapshots if i.get("catalog_item_id")
+        }
+        names_by_id: dict[UUID, dict] = {}
+        if catalog_ids:
+            rows = await db.execute(
+                select(TreatmentCatalogItem.id, TreatmentCatalogItem.names).where(
+                    TreatmentCatalogItem.id.in_(catalog_ids)
+                )
+            )
+            names_by_id = {row.id: row.names or {} for row in rows}
+
+        included: list[dict] = []
+        for snap in item_snapshots:
+            raw_id = snap.get("catalog_item_id")
+            names = names_by_id.get(UUID(raw_id)) if raw_id else None
+            if not names:
+                description = snap.get("description")
+                if not description:
+                    continue
+                names = {"es": description}
+            included.append(
+                {
+                    "names": names,
+                    "tooth_number": snap.get("tooth_number"),
+                    "surfaces": snap.get("surfaces"),
+                }
+            )
+        return included
+
+    @staticmethod
+    async def convert_to_manual_total(
+        db: AsyncSession,
+        clinic_id: UUID,
+        budget: Budget,
+        changed_by: UUID,
+    ) -> Budget:
+        """Turn an itemized draft budget into a manual-total one.
+
+        Needed because ``is_manual_total`` is decided at creation and a
+        clinic that switches policy still has drafts in the old shape.
+
+        The line items are dropped (a manual-total budget has none) but
+        their names are preserved in ``included_items_snapshot`` first,
+        so the document still says what it covers. The current computed
+        total carries over as the starting figure.
+
+        Draft-only: an issued or accepted budget has been shown to the
+        patient, and silently restructuring it would rewrite what they
+        agreed to.
+        """
+        if budget.is_manual_total:
+            raise ValueError("Budget already uses a manual total")
+        if budget.status != "draft":
+            raise ValueError("Only draft budgets can be converted to manual total")
+
+        result = await db.execute(select(BudgetItem).where(BudgetItem.budget_id == budget.id))
+        items = list(result.scalars().all())
+
+        budget.included_items_snapshot = await BudgetService._build_included_items(
+            db,
+            [
+                {
+                    "catalog_item_id": str(i.catalog_item_id) if i.catalog_item_id else None,
+                    "description": i.description,
+                    "tooth_number": i.tooth_number,
+                    "surfaces": i.surfaces,
+                }
+                for i in items
+            ],
+        )
+
+        previous_total = budget.total
+        for item in items:
+            await db.delete(item)
+        await db.flush()
+
+        budget.is_manual_total = True
+        budget.subtotal = previous_total
+        budget.total = previous_total
+        budget.total_discount = Decimal("0.00")
+        budget.total_tax = Decimal("0.00")
+
+        await BudgetHistoryService.add_entry(
+            db,
+            clinic_id=clinic_id,
+            budget_id=budget.id,
+            action="converted_to_manual_total",
+            changed_by=changed_by,
+            new_state={
+                "is_manual_total": True,
+                "total": str(previous_total),
+                "dropped_items": len(items),
+            },
+        )
+        return budget
+
+    @staticmethod
     async def create_from_plan_snapshot(
         db: AsyncSession,
         clinic_id: UUID,
@@ -522,6 +634,9 @@ class BudgetService:
             )
             budget.subtotal = seed_total
             budget.total = seed_total
+            budget.included_items_snapshot = await BudgetService._build_included_items(
+                db, snapshot.get("items") or []
+            )
             await BudgetHistoryService.add_entry(
                 db,
                 clinic_id=clinic_id,

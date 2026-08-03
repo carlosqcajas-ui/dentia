@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- feat(manual-total): a manual-total budget now states **what it covers**.
+  New `Budget.included_items_snapshot` (JSONB, migration `bud_0007`) holds
+  a price-free list — localized catalog names plus tooth/surfaces, copied
+  at creation so the document survives a catalog rename. Rendered on the
+  budget screen and in the PDF under "Incluye". Previously a manual-total
+  budget showed only a figure, which is unusable as a patient quote.
+- feat(manual-total): `POST /budgets/{id}/convert-to-manual-total`
+  (`budget.write`, draft only). `is_manual_total` was fixed at creation,
+  so a clinic that switched policy was stuck with itemized drafts. The
+  conversion captures the line names into `included_items_snapshot`,
+  drops the items, and carries the computed total over as the starting
+  figure. Refused outside `draft` — an issued budget was already shown to
+  the patient.
+
 - feat(manual-total): plan-derived budgets can now be manual-total. New
   clinic setting `budget_manual_total_default` (in `clinic.settings`,
   editable from Ajustes → Presupuestos). When on,

@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 from datetime import date
 from decimal import Decimal
+from html import escape
 from io import BytesIO
 from typing import TYPE_CHECKING
 
@@ -522,7 +523,9 @@ class BudgetPDFService:
 
             <div class="section">
                 {
-            "" if budget.is_manual_total else f'''
+            BudgetPDFService._render_included_items(budget, labels)
+            if budget.is_manual_total
+            else f'''
                 <div class="section-title">{labels["treatments"]}</div>
                 <table>
                     <thead>
@@ -604,6 +607,44 @@ class BudgetPDFService:
         return html
 
     @staticmethod
+    def _render_included_items(budget: Budget, labels: dict) -> str:
+        """Price-free list of what a manual-total budget covers.
+
+        The patient must be able to read what is being quoted; the only
+        figure on the document stays the professional's total. Names come
+        from ``included_items_snapshot`` (captured at creation), so this
+        keeps rendering after a catalog rename.
+        """
+        included = budget.included_items_snapshot or []
+        if not included:
+            return ""
+
+        rows = []
+        for entry in included:
+            names = entry.get("names") or {}
+            name = names.get("es") or next(iter(names.values()), "")
+            if not name:
+                continue
+            detail = ""
+            tooth = entry.get("tooth_number")
+            if tooth is not None:
+                detail = f" · {labels.get('tooth', 'Diente')} {tooth}"
+            surfaces = entry.get("surfaces") or []
+            if surfaces:
+                detail += f" ({''.join(surfaces)})"
+            rows.append(f"<li>{escape(str(name))}{escape(detail)}</li>")
+
+        if not rows:
+            return ""
+
+        return f"""
+                <div class="section-title">{labels.get("includes", "Incluye")}</div>
+                <ul class="included-list">
+                    {"".join(rows)}
+                </ul>
+        """
+
+    @staticmethod
     def _html_to_pdf(html_content: str) -> bytes:
         """Convert HTML to PDF.
 
@@ -632,6 +673,8 @@ class BudgetPDFService:
             "patient": "Paciente",
             "professional": "Profesional",
             "treatments": "Tratamientos",
+            "includes": "Incluye",
+            "tooth": "Diente",
             "description": "Descripción",
             "qty": "Cant.",
             "unit_price": "Precio Unit.",
@@ -678,6 +721,8 @@ class BudgetPDFService:
             "patient": "Patient",
             "professional": "Professional",
             "treatments": "Treatments",
+            "includes": "Includes",
+            "tooth": "Tooth",
             "description": "Description",
             "qty": "Qty",
             "unit_price": "Unit Price",

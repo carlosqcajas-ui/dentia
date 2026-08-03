@@ -2,6 +2,7 @@
 import type { BudgetItem, InvoiceListItem, PaginatedResponse, SignatureCreate } from '~~/app/types'
 import { BUDGET_STATUS_ROLE } from '~~/app/config/severity'
 import { PERMISSIONS } from '~~/app/config/permissions'
+import { errorMessage } from '~~/app/utils/error'
 import type { EntityChip } from '~~/app/components/shared/EntityStatusChips.vue'
 import type { EntityAction } from '~~/app/components/shared/EntityActionBar.vue'
 import type { TotalLine } from '~~/app/components/shared/EntityTotalsCard.vue'
@@ -547,6 +548,51 @@ const infoItems = computed<InfoItem[]>(() => {
   return items
 })
 
+/**
+ * Price-free list a manual-total budget covers. Comes from
+ * ``included_items_snapshot``: localized names captured at creation, so
+ * it keeps rendering after a catalog rename. Never carries an amount.
+ */
+interface IncludedItem {
+  names?: Record<string, string>
+  tooth_number?: number | null
+  surfaces?: string[] | null
+}
+
+const includedItems = computed<IncludedItem[]>(
+  () => (currentBudget.value?.included_items_snapshot as IncludedItem[] | null) ?? []
+)
+
+function includedLabel(inc: IncludedItem): string {
+  const name = inc.names?.[locale.value] || inc.names?.es || '-'
+  const parts = [name]
+  if (inc.tooth_number != null) parts.push(`· ${t('budget.tooth')} ${inc.tooth_number}`)
+  if (inc.surfaces?.length) parts.push(`(${inc.surfaces.join('')})`)
+  return parts.join(' ')
+}
+
+const isConverting = ref(false)
+
+/**
+ * Drop the line items so the professional owns the figure. Irreversible
+ * and draft-only, so it asks first — the treatment names survive in
+ * ``included_items_snapshot`` but the per-line prices do not.
+ */
+async function convertToManualTotal() {
+  if (!currentBudget.value) return
+  if (!window.confirm(t('budget.convertConfirm'))) return
+  isConverting.value = true
+  try {
+    await api.post(`/api/v1/budget/budgets/${currentBudget.value.id}/convert-to-manual-total`)
+    await fetchBudget(currentBudget.value.id)
+    toast.add({ title: t('budget.converted'), color: 'success' })
+  } catch (e) {
+    toast.add({ title: errorMessage(e, t('budget.errors.update')), color: 'error' })
+  } finally {
+    isConverting.value = false
+  }
+}
+
 function getItemName(item: BudgetItem): string {
   if (item.catalog_item) {
     return item.catalog_item.names[locale.value] || item.catalog_item.names.es || item.catalog_item.internal_code
@@ -794,6 +840,30 @@ function getItemName(item: BudgetItem): string {
                 {{ t('common.save') }}
               </UButton>
             </form>
+
+            <!-- What the quote covers. Names only: the whole point of
+                 this mode is that the single figure above is the price. -->
+            <div
+              v-if="includedItems.length"
+              class="mt-5 pt-4 border-t border-default"
+            >
+              <p class="text-caption text-subtle mb-2">
+                {{ t('budget.includes') }}
+              </p>
+              <ul class="space-y-1">
+                <li
+                  v-for="(inc, idx) in includedItems"
+                  :key="idx"
+                  class="flex items-center gap-2 text-default"
+                >
+                  <UIcon
+                    name="i-lucide-check"
+                    class="w-4 h-4 text-muted shrink-0"
+                  />
+                  <span>{{ includedLabel(inc) }}</span>
+                </li>
+              </ul>
+            </div>
           </UCard>
 
           <!-- Items -->
@@ -803,14 +873,28 @@ function getItemName(item: BudgetItem): string {
                 <h2 class="text-h1 text-default">
                   {{ t('budget.items.title') }}
                 </h2>
-                <UButton
-                  v-if="canEdit(currentBudget) && can(PERMISSIONS.budget.write)"
-                  icon="i-lucide-plus"
-                  size="sm"
-                  @click="isAddItemModalOpen = true"
-                >
-                  {{ t('budget.items.add') }}
-                </UButton>
+                <div class="flex items-center gap-2">
+                  <UButton
+                    v-if="canEdit(currentBudget) && can(PERMISSIONS.budget.write)"
+                    variant="ghost"
+                    color="neutral"
+                    size="sm"
+                    icon="i-lucide-pencil-ruler"
+                    :loading="isConverting"
+                    :title="t('budget.convertHelp')"
+                    @click="convertToManualTotal"
+                  >
+                    {{ t('budget.convertToManualTotal') }}
+                  </UButton>
+                  <UButton
+                    v-if="canEdit(currentBudget) && can(PERMISSIONS.budget.write)"
+                    icon="i-lucide-plus"
+                    size="sm"
+                    @click="isAddItemModalOpen = true"
+                  >
+                    {{ t('budget.items.add') }}
+                  </UButton>
+                </div>
               </div>
             </template>
 

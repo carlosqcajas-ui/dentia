@@ -114,6 +114,19 @@ class Budget(Base, TimestampMixin):
     plan_number_snapshot: Mapped[str | None] = mapped_column(String(50), default=None)
     plan_status_snapshot: Mapped[str | None] = mapped_column(String(20), default=None)
 
+    # What a manual-total budget covers, WITHOUT prices. A manual-total
+    # budget has no ``BudgetItem`` rows by definition (ADR 0018), but the
+    # patient still needs to read what is being quoted. Shape:
+    #
+    #     [{"names": {"es": "Inlay", "en": "Inlay"},
+    #       "tooth_number": 26, "surfaces": ["M", "O"]}, ...]
+    #
+    # Localized names are copied from the catalog at creation time so the
+    # document survives a catalog rename or deletion — same reasoning as
+    # ``plan_number_snapshot`` above. Never stores an amount: the whole
+    # point of this mode is that only the professional's total is shown.
+    included_items_snapshot: Mapped[list | None] = mapped_column(JSONB, default=None)
+
     # Soft delete
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
 

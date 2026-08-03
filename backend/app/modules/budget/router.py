@@ -172,6 +172,36 @@ async def create_budget(
     return ApiResponse(data=BudgetDetailResponse.model_validate(budget))
 
 
+@router.post(
+    "/budgets/{budget_id}/convert-to-manual-total",
+    response_model=ApiResponse[BudgetDetailResponse],
+)
+async def convert_budget_to_manual_total(
+    budget_id: UUID,
+    ctx: Annotated[ClinicContext, Depends(get_clinic_context)],
+    _: Annotated[None, Depends(require_permission("budget.write"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ApiResponse[BudgetDetailResponse]:
+    """Drop the line items and let the professional own the total.
+
+    Draft-only. The treatment names survive in
+    ``included_items_snapshot`` so the document still states what it
+    covers; the computed total carries over as the starting figure.
+    """
+    budget = await BudgetService.get_budget(db, ctx.clinic_id, budget_id, include_items=True)
+    if not budget:
+        raise HTTPException(status_code=404, detail="Budget not found")
+
+    try:
+        await BudgetService.convert_to_manual_total(db, ctx.clinic_id, budget, ctx.user_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    await db.commit()
+    budget = await BudgetService.get_budget(db, ctx.clinic_id, budget_id, include_items=True)
+    return ApiResponse(data=BudgetDetailResponse.model_validate(budget))
+
+
 @router.put("/budgets/{budget_id}", response_model=ApiResponse[BudgetDetailResponse])
 async def update_budget(
     budget_id: UUID,

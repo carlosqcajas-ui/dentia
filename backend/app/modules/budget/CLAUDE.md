@@ -96,6 +96,15 @@ contract.
   `is_manual_total`.** Don't remove those guards: a manual-total
   budget has no items by definition, and mirroring plan items into it
   leaves orphan rows that no total reflects.
+- **Manual-total budgets carry `included_items_snapshot`, never items.**
+  It is the price-free list the patient reads ("Incluye"). Localized
+  names are snapshotted at creation on purpose — don't re-resolve them
+  from `catalog` at render time, and never add an amount to those
+  entries. The single figure on the document is the professional's.
+- **`is_manual_total` is decided at creation**, with one escape hatch:
+  `POST /budgets/{id}/convert-to-manual-total`, draft-only and one-way.
+  There is deliberately no reverse conversion — the per-line prices are
+  gone once dropped.
 - **Budget versioning** keeps every prior version — never overwrite.
 - **No patient self-service.** There is deliberately no unauthenticated
   route that lets a patient accept/reject/view a budget — see ADR

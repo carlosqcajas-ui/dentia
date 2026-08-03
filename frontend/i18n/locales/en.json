@@ -2175,7 +2175,13 @@
         "save": "Save"
       },
       "saved": "Settings saved"
-    }
+    },
+    "includes": "Includes",
+    "tooth": "Tooth",
+    "convertToManualTotal": "Use a free total",
+    "convertHelp": "Removes the line-by-line breakdown and lets you set the figure. The treatment list is kept, without prices. Draft only and cannot be undone.",
+    "convertConfirm": "Convert to a free total? The lines will be removed and the amount becomes editable.",
+    "converted": "Budget converted to a free total"
   },
   "notifications": {
     "communications": {

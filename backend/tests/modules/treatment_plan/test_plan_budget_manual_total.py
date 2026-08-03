@@ -194,3 +194,71 @@ async def test_plan_item_events_skip_manual_total_budgets(db_session: AsyncSessi
     refreshed = await db_session.get(Budget, budget.id)
     await db_session.refresh(refreshed)
     assert refreshed.total == Decimal("100.00"), "total must be untouched"
+
+
+@pytest.mark.asyncio
+async def test_manual_total_budget_lists_treatments_without_prices(db_session: AsyncSession):
+    """The patient must read what is quoted; only the total carries a figure."""
+    clinic, patient, user = await _clinic(db_session, manual_total=True)
+
+    budget = await BudgetService.create_from_plan_snapshot(
+        db_session, clinic.id, user.id, _snapshot(patient.id, ["100.00", "50.00"])
+    )
+    await db_session.commit()
+
+    assert budget is not None
+    included = budget.included_items_snapshot
+    assert included is not None and len(included) == 2
+
+    for entry in included:
+        assert "names" in entry
+        # The whole point: no amount anywhere in the covered-items list.
+        assert not any(k in entry for k in ("unit_price", "price", "total", "amount"))
+
+
+@pytest.mark.asyncio
+async def test_convert_draft_to_manual_total_keeps_names_drops_prices(db_session: AsyncSession):
+    """An itemized draft can be switched over without losing the treatments."""
+    clinic, patient, user = await _clinic(db_session, manual_total=False)
+    treatments = await _treatments(db_session, clinic, patient, 2)
+
+    budget = await BudgetService.create_from_plan_snapshot(
+        db_session, clinic.id, user.id, _snapshot(patient.id, ["120.00", "60.00"], treatments)
+    )
+    await db_session.commit()
+    assert budget is not None and budget.is_manual_total is False
+    assert budget.total == Decimal("180.00")
+
+    await BudgetService.convert_to_manual_total(db_session, clinic.id, budget, user.id)
+    await db_session.commit()
+
+    assert budget.is_manual_total is True
+    # The computed total carries over as the starting figure.
+    assert budget.total == Decimal("180.00")
+    # Lines are gone...
+    rows = (
+        await db_session.execute(
+            BudgetItem.__table__.select().where(BudgetItem.budget_id == budget.id)
+        )
+    ).all()
+    assert rows == []
+    # ...but what the quote covers survives.
+    assert budget.included_items_snapshot is not None
+    assert len(budget.included_items_snapshot) == 2
+
+
+@pytest.mark.asyncio
+async def test_convert_refused_outside_draft(db_session: AsyncSession):
+    """An accepted budget was shown to the patient — don't restructure it."""
+    clinic, patient, user = await _clinic(db_session, manual_total=False)
+    treatments = await _treatments(db_session, clinic, patient, 1)
+
+    budget = await BudgetService.create_from_plan_snapshot(
+        db_session, clinic.id, user.id, _snapshot(patient.id, ["90.00"], treatments)
+    )
+    assert budget is not None
+    budget.status = "accepted"
+    await db_session.commit()
+
+    with pytest.raises(ValueError, match="draft"):
+        await BudgetService.convert_to_manual_total(db_session, clinic.id, budget, user.id)

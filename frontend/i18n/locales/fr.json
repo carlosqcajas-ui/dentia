@@ -2175,7 +2175,13 @@
         "save": "Enregistrer"
       },
       "saved": "Paramètres enregistrés"
-    }
+    },
+    "includes": "Comprend",
+    "tooth": "Dent",
+    "convertToManualTotal": "Utiliser un total libre",
+    "convertHelp": "Supprime le détail par ligne et vous laisse définir le montant. La liste des traitements est conservée, sans prix. Brouillon uniquement et irréversible.",
+    "convertConfirm": "Convertir en total libre ? Les lignes seront supprimées et le montant deviendra modifiable.",
+    "converted": "Devis converti en total libre"
   },
   "notifications": {
     "communications": {

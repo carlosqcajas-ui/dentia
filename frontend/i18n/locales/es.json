@@ -2198,7 +2198,13 @@
         "save": "Guardar"
       },
       "saved": "Ajustes guardados"
-    }
+    },
+    "includes": "Incluye",
+    "tooth": "Diente",
+    "convertToManualTotal": "Usar total libre",
+    "convertHelp": "Quita el desglose por líneas y te deja definir el importe. Se conserva la lista de tratamientos, sin precios. Solo en borrador y no se puede deshacer.",
+    "convertConfirm": "¿Convertir a total libre? Se quitarán las líneas y el importe pasará a ser editable.",
+    "converted": "Presupuesto convertido a total libre"
   },
   "invoice": {
     "title": "Facturas",

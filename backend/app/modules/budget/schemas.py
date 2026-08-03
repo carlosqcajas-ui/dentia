@@ -382,6 +382,9 @@ class BudgetResponse(BaseModel):
     total_tax: Decimal
     total: Decimal
     is_manual_total: bool
+    # What a manual-total budget covers, without prices. Null on
+    # itemized budgets, which render from ``items`` instead.
+    included_items_snapshot: list[dict] | None = None
 
     # Notes
     internal_notes: str | None
